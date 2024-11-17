@@ -121,13 +121,12 @@ function getAudioOutputOptions(
   segmentSize: number,
 ) {
   const args: string[] = [
-    "-f mp4",
     "-vn",
-    `-ac ${stream.channels}`,
-    `-c:a ${stream.codec}`,
-    `-b:a ${stream.bitrate}`,
+    `-ac ${stream.channels ?? 2}`,
+    `-c:a ${stream.codec ?? 'acc'}`,
+    `-b:a ${stream.bitrate ?? '256k'}`,
     `-frag_duration ${segmentSize * 1_000_000}`,
-    `-metadata language=${stream.language}`,
+    `-metadata language=${stream.language ?? 'eng'}`,
     "-strict experimental",
   ];
 
