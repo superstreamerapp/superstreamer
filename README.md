@@ -43,6 +43,17 @@ cd docker
 # Copy the example config
 cp ../config.env.example config.env
 # Open config.env and change the variables.
+```
+
+### Run with MinIO (local S3-compatible storage)
+
+```shell
+docker compose -f docker-compose.yml -f minio/docker-compose.minio.yml --env-file minio/minio.env up -d
+```
+
+### Run with your own S3-compatible storage (update S3\_\* variables in config.env)
+
+```shell
 docker compose up -d
 ```
 

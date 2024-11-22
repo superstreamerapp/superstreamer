@@ -3,7 +3,6 @@ version: "3"
 volumes:
   superstreamer_redis_data:
   superstreamer_postgres_data:
-  superstreamer_minio_data:
 
 services:
   superstreamer-app:
@@ -27,11 +26,11 @@ services:
       - REDIS_HOST=superstreamer-redis
       - REDIS_PORT=6379
       - DATABASE_URI=postgresql://postgres:sprs@superstreamer-postgres/sprs
-      - S3_ENDPOINT=http://superstreamer-minio:9000
-      - S3_REGION=us-east-1
-      - S3_ACCESS_KEY=minioadmin
-      - S3_SECRET_KEY=minioadmin
-      - S3_BUCKET=superstreamer
+      - S3_ENDPOINT=${S3_ENDPOINT}
+      - S3_REGION=${S3_REGION}
+      - S3_ACCESS_KEY=${S3_ACCESS_KEY}
+      - S3_SECRET_KEY=${S3_SECRET_KEY}
+      - S3_BUCKET=${S3_BUCKET}
 
   superstreamer-stitcher:
     image: "superstreamerapp/stitcher:alpha"
@@ -46,11 +45,11 @@ services:
       - REDIS_PORT=6379
       - PUBLIC_API_ENDPOINT=http://localhost:52001
       - PUBLIC_STITCHER_ENDPOINT=http://localhost:52002
-      - S3_ENDPOINT=http://superstreamer-minio:9000
-      - S3_REGION=us-east-1
-      - S3_ACCESS_KEY=minioadmin
-      - S3_SECRET_KEY=minioadmin
-      - S3_BUCKET=superstreamer
+      - S3_ENDPOINT=${S3_ENDPOINT}
+      - S3_REGION=${S3_REGION}
+      - S3_ACCESS_KEY=${S3_ACCESS_KEY}
+      - S3_SECRET_KEY=${S3_SECRET_KEY}
+      - S3_BUCKET=${S3_BUCKET}
 
   superstreamer-artisan:
     image: "superstreamerapp/artisan:alpha"
@@ -61,11 +60,11 @@ services:
     environment:
       - REDIS_HOST=superstreamer-redis
       - REDIS_PORT=6379
-      - S3_ENDPOINT=http://superstreamer-minio:9000
-      - S3_REGION=us-east-1
-      - S3_ACCESS_KEY=minioadmin
-      - S3_SECRET_KEY=minioadmin
-      - S3_BUCKET=superstreamer
+      - S3_ENDPOINT=${S3_ENDPOINT}
+      - S3_REGION=${S3_REGION}
+      - S3_ACCESS_KEY=${S3_ACCESS_KEY}
+      - S3_SECRET_KEY=${S3_SECRET_KEY}
+      - S3_BUCKET=${S3_BUCKET}
 
   superstreamer-redis:
     image: redis/redis-stack-server:7.2.0-v6
@@ -88,32 +87,3 @@ services:
       - POSTGRES_INITDB_ARGS=--data-checksums
       - POSTGRES_DB=sprs
       - POSTGRES_PASSWORD=sprs
-
-  superstreamer-minio:
-    image: quay.io/minio/minio
-    environment:
-      MINIO_ROOT_USER: minioadmin
-      MINIO_ROOT_PASSWORD: minioadmin
-    command: server /data --console-address ":9001"
-    ports:
-      - "9000:9000" # API
-      - "9001:9001" # Console
-    volumes:
-      - superstreamer_minio_data:/data
-    healthcheck:
-      test: ["CMD", "mc", "ready", "local"]
-      interval: 5s
-      timeout: 5s
-      retries: 5
-
-  createbuckets:
-    image: minio/mc
-    depends_on:
-      superstreamer-minio:
-        condition: service_healthy
-    entrypoint: >
-      /bin/sh -c "
-      mc alias set myminio http://superstreamer-minio:9000 minioadmin minioadmin;
-      mc mb myminio/superstreamer;
-      exit 0;
-      "
