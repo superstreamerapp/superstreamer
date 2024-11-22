@@ -1,10 +1,11 @@
 import { randomUUID } from "crypto";
 import { DateTime } from "luxon";
-import { kv } from "./kv";
-import { Group } from "./lib/group";
+import { kv } from "./adapters/kv";
 import { JSON } from "./lib/json";
 import { resolveUri } from "./lib/url";
+import { fetchVmap } from "./vmap";
 import type { Interstitial, InterstitialType } from "./interstitials";
+import type { VmapParams, VmapResponse } from "./vmap";
 
 export interface Session {
   id: string;
@@ -14,11 +15,9 @@ export interface Session {
   startTime?: DateTime;
 
   // User defined options
-  vmap?: {
-    url: string;
-  };
-  vmapResponse?: string;
-  interstitials?: Group<number, Interstitial>;
+  vmap?: VmapParams;
+  vmapResponse?: VmapResponse;
+  interstitials?: Interstitial[];
 }
 
 export async function createSession(params: {
@@ -27,7 +26,7 @@ export async function createSession(params: {
     url: string;
   };
   interstitials?: {
-    timeOffset: number;
+    position: number;
     uri: string;
     duration?: number;
     type?: InterstitialType;
@@ -45,15 +44,14 @@ export async function createSession(params: {
   };
 
   if (params.interstitials) {
-    const group = new Group<number, Interstitial>();
-    params.interstitials.forEach((interstitial) => {
-      group.add(interstitial.timeOffset, {
+    session.interstitials = params.interstitials.map((interstitial) => {
+      return {
+        position: interstitial.position,
         url: resolveUri(interstitial.uri),
         duration: interstitial.duration,
         type: interstitial.type,
-      });
+      };
     });
-    session.interstitials = group;
   }
 
   // We'll initially store the session for 10 minutes, if it's not been consumed
@@ -82,14 +80,7 @@ export async function processSessionOnMasterReq(session: Session) {
   session.startTime = DateTime.now();
 
   if (session.vmap) {
-    const USER_AGENT =
-      "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36";
-    const response = await fetch(session.vmap.url, {
-      headers: {
-        "User-Agent": USER_AGENT,
-      },
-    });
-    session.vmapResponse = await response.text();
+    session.vmapResponse = await fetchVmap(session.vmap);
     delete session.vmap;
   }
 

@@ -1,21 +1,33 @@
 import { DOMParser, XMLSerializer } from "@xmldom/xmldom";
-import * as timeFormat from "hh-mm-ss";
-
-export interface VmapSlot {
-  vastUrl?: string;
-  vastData?: string;
-}
+import { toS } from "hh-mm-ss";
 
 export interface VmapAdBreak {
-  timeOffset: number;
-  slots: VmapSlot[];
+  timeOffset: string;
+  vastUrl?: string;
+  vastData?: string;
 }
 
 export interface VmapResponse {
   adBreaks: VmapAdBreak[];
 }
 
-export function parseVmap(text: string): VmapResponse {
+export interface VmapParams {
+  url: string;
+}
+
+export async function fetchVmap(params: VmapParams): Promise<VmapResponse> {
+  const USER_AGENT =
+    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36";
+  const response = await fetch(params.url, {
+    headers: {
+      "User-Agent": USER_AGENT,
+    },
+  });
+  const text = await response.text();
+  return parseVmap(text);
+}
+
+function parseVmap(text: string): VmapResponse {
   const parser = new DOMParser();
   const doc = parser.parseFromString(text, "text/xml");
   const rootElement = doc.documentElement;
@@ -24,49 +36,48 @@ export function parseVmap(text: string): VmapResponse {
     throw new Error("Url did not resolve in a vmap");
   }
 
-  const adBreaks: VmapAdBreak[] = [];
-
-  childList(rootElement).forEach((element) => {
-    if (element.localName === "AdBreak") {
-      const timeOffset = toTimeOffset(element.getAttribute("timeOffset"));
-      if (timeOffset === null) {
-        return;
+  const adBreaks = childList(rootElement).reduce<VmapAdBreak[]>(
+    (acc, element) => {
+      const adBreak = formatAdBreak(element);
+      if (adBreak) {
+        acc.push(adBreak);
       }
 
-      const slot = getSlot(element);
-      if (!slot) {
-        return;
-      }
+      return acc;
+    },
+    [],
+  );
 
-      let adBreak = adBreaks.find(
-        (adBreak) => adBreak.timeOffset === timeOffset,
-      );
-      if (!adBreak) {
-        adBreak = {
-          timeOffset,
-          slots: [],
-        };
-        adBreaks.push(adBreak);
-      }
+  return {
+    adBreaks,
+  };
+}
 
-      adBreak.slots.push(slot);
-    }
-  });
+function formatAdBreak(element: Element): VmapAdBreak | null {
+  if (element.localName !== "AdBreak") {
+    return null;
+  }
 
-  return { adBreaks };
+  const timeOffset = element.getAttribute("timeOffset");
+  if (timeOffset === null) {
+    return null;
+  }
+
+  const vastUrl = getVastUrl(element);
+  const vastData = getVastData(element);
+  if (!vastUrl && !vastData) {
+    return null;
+  }
+
+  return {
+    timeOffset,
+    vastUrl,
+    vastData,
+  };
 }
 
 function getAdSource(element: Element) {
   return childList(element).find((child) => child.localName === "AdSource");
-}
-
-function getSlot(element: Element): VmapSlot {
-  const vastUrl = getVastUrl(element);
-  const vastData = getVastData(element);
-  return {
-    vastUrl,
-    vastData,
-  };
 }
 
 function getVastUrl(element: Element) {
@@ -105,15 +116,12 @@ function childList(node: Element) {
   return Array.from(node.childNodes) as Element[];
 }
 
-function toTimeOffset(value: string | null) {
-  if (value === null) {
-    return null;
-  }
-  if (value === "start") {
+export function toAdBreakTimeOffset(adBreak: VmapAdBreak) {
+  if (adBreak.timeOffset === "start") {
     return 0;
   }
-  if (value === "end") {
+  if (adBreak.timeOffset === "end") {
     return null;
   }
-  return timeFormat.toS(value);
+  return toS(adBreak.timeOffset);
 }

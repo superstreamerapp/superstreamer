@@ -1,14 +1,12 @@
-import Cryptr from "cryptr";
+import * as crypto from "secure-encrypt";
 import { env } from "../env";
 
-const cryptr = new Cryptr(env.SUPER_SECRET ?? "__UNSECURE__", {
-  encoding: "base64",
-});
+const secret = env.SUPER_SECRET ?? "__UNSECURE__";
 
 export function encrypt(value: string) {
-  return cryptr.encrypt(value);
+  return btoa(crypto.encrypt(value, secret));
 }
 
 export function decrypt(value: string) {
-  return cryptr.decrypt(value);
+  return crypto.decrypt(atob(value), secret);
 }

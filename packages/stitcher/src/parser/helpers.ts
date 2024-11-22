@@ -1,6 +1,6 @@
 import type { Rendition, Variant } from "./types";
 
-export function groupRenditions(variants: Variant[]) {
+export function getRenditions(variants: Variant[]) {
   const group = new Set<Rendition>();
   variants.forEach((variant) => {
     variant.audio.forEach((rendition) => {

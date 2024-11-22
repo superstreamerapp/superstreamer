@@ -5,6 +5,4 @@ process.env = {
   S3_ACCESS_KEY: "s3-access-key",
   S3_SECRET_KEY: "s3-secret-key",
   S3_BUCKET: "s3-bucket",
-  REDIS_HOST: "redis-host",
-  REDIS_PORT: "6379",
 };

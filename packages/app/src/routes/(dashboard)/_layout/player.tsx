@@ -1,4 +1,4 @@
-import { Card } from "@nextui-org/react";
+import { Card, Modal, ModalBody, ModalContent } from "@nextui-org/react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useRef, useState } from "react";
 import { CodeEditor } from "../../../components/CodeEditor";
@@ -14,6 +14,7 @@ export const Route = createFileRoute("/(dashboard)/_layout/player")({
 function RouteComponent() {
   const formRef = useRef<FormRef>(null);
   const [url, setUrl] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   const schema = useSwaggerSchema(
     `${window.__ENV__.PUBLIC_STITCHER_ENDPOINT}/swagger/json`,
@@ -21,7 +22,7 @@ function RouteComponent() {
   );
 
   return (
-    <div className="p-8 h-screen flex gap-4">
+    <div className="h-screen p-8 flex gap-4">
       <div className="grow">
         <Player url={url} lang="eng" metadata={{}} />
         <Card className="mt-4 p-4">
@@ -46,6 +47,8 @@ function RouteComponent() {
           schema={schema}
           localStorageKey="stitcherEditor"
           onSave={async (body) => {
+            setError(null);
+
             const response = await fetch(
               `${window.__ENV__.PUBLIC_STITCHER_ENDPOINT}/session`,
               {
@@ -57,14 +60,30 @@ function RouteComponent() {
               },
             );
 
+            const data = await response.json();
             if (response.ok) {
-              const { url } = await response.json();
-              formRef.current?.setValue("url", url);
-              setUrl(url);
+              formRef.current?.setValue("url", data.url);
+              setUrl(data.url);
+            } else {
+              setError(data);
             }
           }}
         />
       </Card>
+      <Modal
+        isOpen={error !== null}
+        onClose={() => setError(null)}
+        size="5xl"
+        scrollBehavior="inside"
+      >
+        <ModalContent>
+          <ModalBody className="p-4">
+            <pre className="text-xs text-red-500">
+              {JSON.stringify(error, null, 2)}
+            </pre>
+          </ModalBody>
+        </ModalContent>
+      </Modal>
     </div>
   );
 }

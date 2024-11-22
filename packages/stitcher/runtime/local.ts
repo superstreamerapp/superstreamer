@@ -1,10 +1,5 @@
-import { parseEnv } from "shared/env";
 import { createApp } from "../src";
-
-const env = parseEnv((z) => ({
-  PORT: z.coerce.number().default(52002),
-  HOST: z.string().default("0.0.0.0"),
-}));
+import { env } from "../src/env";
 
 const app = createApp({
   aot: true,

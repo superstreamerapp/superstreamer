@@ -1,10 +1,13 @@
 import { parseEnv } from "shared/env";
 
 export const env = parseEnv((z) => ({
-  SERVERLESS: z.coerce.boolean().default(false),
+  PORT: z.coerce.number().default(52002),
+  HOST: z.string().optional(),
 
-  REDIS_HOST: z.string(),
-  REDIS_PORT: z.coerce.number(),
+  KV: z.enum(["redis", "cloudflare-kv"]).default("redis"),
+  REDIS_HOST: z.string().default("localhost"),
+  REDIS_PORT: z.coerce.number().default(6379),
+
   PUBLIC_S3_ENDPOINT: z.string(),
   PUBLIC_STITCHER_ENDPOINT: z.string(),
   PUBLIC_API_ENDPOINT: z.string(),

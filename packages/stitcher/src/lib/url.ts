@@ -61,7 +61,7 @@ export function joinUrl(urlFile: string, filePath: string) {
 
 export function makeUrl(
   path: string,
-  params: Record<string, string | undefined | null> = {},
+  params: Record<string, string | number | undefined | null> = {},
 ) {
   return buildUrl(`${env.PUBLIC_STITCHER_ENDPOINT}/${path}`, params);
 }

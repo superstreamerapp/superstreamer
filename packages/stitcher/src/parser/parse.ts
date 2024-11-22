@@ -50,29 +50,27 @@ function formatMediaPlaylist(tags: Tag[]): MediaPlaylist {
     }
   });
 
-  const segments = tags.reduce<Segment[]>((acc, [name], index) => {
-    if (name !== "EXTINF") {
-      return acc;
+  const segments: Segment[] = [];
+  let segmentStart = -1;
+
+  tags.forEach(([name], index) => {
+    if (isSegmentTag(name)) {
+      segmentStart = index - 1;
     }
 
-    let segmentStart = index;
-    const segmentEnd = index + 1;
-    for (let i = index; i > 0; i--) {
-      if (tags[i]?.[0] === "LITERAL") {
-        segmentStart = i + 1;
-        break;
+    if (name === "LITERAL") {
+      if (segmentStart < 0) {
+        throw new Error("LITERAL: no segment start");
       }
+      const segmentTags = tags.slice(segmentStart, index + 1);
+      const uri = nextLiteral(segmentTags, segmentTags.length - 2);
+
+      const segment = parseSegment(segmentTags, uri, map);
+      segments.push(segment);
+
+      segmentStart = -1;
     }
-
-    const segmentTags = tags.slice(segmentStart, segmentEnd);
-    const uri = nextLiteral(tags, index);
-
-    const segment = parseSegment(segmentTags, uri, map);
-
-    acc.push(segment);
-
-    return acc;
-  }, []);
+  });
 
   assert(targetDuration);
 
@@ -221,6 +219,17 @@ function nextLiteral(tags: Tag[], index: number) {
     throw new Error("Expecting next tag to be a literal");
   }
   return value;
+}
+
+function isSegmentTag(name: Tag[0]) {
+  switch (name) {
+    case "EXTINF":
+    case "EXT-X-DISCONTINUITY":
+    case "EXT-X-MAP":
+    case "EXT-X-PROGRAM-DATE-TIME":
+      return true;
+  }
+  return false;
 }
 
 export function parseMasterPlaylist(text: string) {

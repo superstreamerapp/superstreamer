@@ -1,7 +1,6 @@
 import { Elysia, t } from "elysia";
-import { getFilterFromQuery, getQueryParamsFromFilter } from "../filters";
+import { filterSchema } from "../filters";
 import { decrypt } from "../lib/crypto";
-import { makeUrl } from "../lib/url";
 import {
   formatAssetList,
   formatMasterPlaylist,
@@ -13,6 +12,27 @@ import {
   getSession,
   processSessionOnMasterReq,
 } from "../session";
+import type { Filter } from "../filters";
+import type { Session } from "../session";
+
+async function handleMasterPlaylist(
+  origUrl: string,
+  session?: Session,
+  filter?: Filter,
+) {
+  if (session) {
+    await processSessionOnMasterReq(session);
+  }
+
+  const sessionId = session?.id;
+  const playlist = await formatMasterPlaylist({
+    origUrl,
+    sessionId,
+    filter,
+  });
+
+  return playlist;
+}
 
 export const sessionRoutes = new Elysia()
   .post(
@@ -20,10 +40,12 @@ export const sessionRoutes = new Elysia()
     async ({ body }) => {
       const session = await createSession(body);
 
-      const filter = body.filter ?? {};
+      const filter = body.filter;
 
-      const url = makeUrl(`session/${session.id}/master.m3u8`, {
-        ...getQueryParamsFromFilter(filter),
+      const { url } = makeMasterUrl({
+        url: session.url,
+        filter,
+        session,
       });
 
       return { url };
@@ -40,7 +62,7 @@ export const sessionRoutes = new Elysia()
         interstitials: t.Optional(
           t.Array(
             t.Object({
-              timeOffset: t.Number(),
+              position: t.Number(),
               uri: t.String(),
               duration: t.Optional(t.Number()),
               type: t.Optional(t.Union([t.Literal("ad"), t.Literal("bumper")])),
@@ -89,40 +111,37 @@ export const sessionRoutes = new Elysia()
   )
   .get(
     "/session/:sessionId/master.m3u8",
-    async ({ params, query, redirect }) => {
+    async ({ set, params, query }) => {
       const session = await getSession(params.sessionId);
-      const url = makeMasterUrl({
-        url: session.url,
-        filter: getFilterFromQuery(query),
+
+      const playlist = await handleMasterPlaylist(
+        session.url,
         session,
-      });
-      return redirect(url, 302);
+        query.fil,
+      );
+
+      set.headers["content-type"] = "application/vnd.apple.mpegurl";
+
+      return playlist;
     },
     {
       params: t.Object({
         sessionId: t.String(),
       }),
       query: t.Object({
-        "filter.resolution": t.Optional(t.String()),
-        "filter.audioLanguage": t.Optional(t.String()),
+        fil: filterSchema,
       }),
     },
   )
   .get(
     "/out/master.m3u8",
     async ({ set, query }) => {
-      const session = await getSession(query.sid);
-
-      await processSessionOnMasterReq(session);
-
-      const filter = getFilterFromQuery(query);
       const url = decrypt(query.eurl);
-      const playlist = await formatMasterPlaylist(url, {
-        session,
-        filter,
-      });
 
-      set.headers["content-type"] = "application/x-mpegURL";
+      const session = query.sid ? await getSession(query.sid) : undefined;
+      const playlist = await handleMasterPlaylist(url, session, query.fil);
+
+      set.headers["content-type"] = "application/vnd.apple.mpegurl";
 
       return playlist;
     },
@@ -132,21 +151,22 @@ export const sessionRoutes = new Elysia()
       },
       query: t.Object({
         eurl: t.String(),
-        sid: t.String(),
-        "filter.resolution": t.Optional(t.String()),
-        "filter.audioLanguage": t.Optional(t.String()),
+        sid: t.Optional(t.String()),
+        fil: filterSchema,
       }),
     },
   )
   .get(
     "/out/playlist.m3u8",
     async ({ set, query }) => {
-      const session = await getSession(query.sid);
+      const session = query.sid ? await getSession(query.sid) : undefined;
 
       const url = decrypt(query.eurl);
-      const playlist = await formatMediaPlaylist(session, query.type, url);
+      const type = query.type;
 
-      set.headers["content-type"] = "application/x-mpegURL";
+      const playlist = await formatMediaPlaylist(url, session, type);
+
+      set.headers["content-type"] = "application/vnd.apple.mpegurl";
 
       return playlist;
     },
@@ -155,28 +175,29 @@ export const sessionRoutes = new Elysia()
         hide: true,
       },
       query: t.Object({
-        type: t.String(),
         eurl: t.String(),
-        sid: t.String(),
+        sid: t.Optional(t.String()),
+        type: t.Optional(t.String()),
       }),
     },
   )
   .get(
-    "/session/:sessionId/asset-list.json",
-    async ({ params, query }) => {
-      const session = await getSession(params.sessionId);
+    "/out/asset-list.json",
+    async ({ query }) => {
+      const sessionId = query.sid;
+      const timeOffset = query.timeOffset;
 
-      return await formatAssetList(session, query.startDate);
+      const session = await getSession(sessionId);
+
+      return await formatAssetList(session, timeOffset);
     },
     {
       detail: {
         hide: true,
       },
-      params: t.Object({
-        sessionId: t.String(),
-      }),
       query: t.Object({
-        startDate: t.String(),
+        timeOffset: t.Optional(t.Number()),
+        sid: t.String(),
         _HLS_primary_id: t.Optional(t.String()),
       }),
     },

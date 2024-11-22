@@ -36,27 +36,20 @@ async function getAdMedias(adBreak: VmapAdBreak): Promise<AdMedia[]> {
   const vastClient = new VASTClient();
   const parser = new DOMParser();
 
-  const result: AdMedia[] = [];
+  let vastResponse: VastResponse | undefined;
 
-  for (const slot of adBreak.slots) {
-    let vastResponse: VastResponse | undefined;
-
-    if (slot.vastUrl) {
-      vastResponse = await vastClient.get(slot.vastUrl);
-    } else if (slot.vastData) {
-      const xml = parser.parseFromString(slot.vastData, "text/xml");
-      vastResponse = await vastClient.parseVAST(xml);
-    }
-
-    if (!vastResponse) {
-      continue;
-    }
-
-    const adMedias = await formatVastResponse(vastResponse);
-    result.push(...adMedias);
+  if (adBreak.vastUrl) {
+    vastResponse = await vastClient.get(adBreak.vastUrl);
+  } else if (adBreak.vastData) {
+    const xml = parser.parseFromString(adBreak.vastData, "text/xml");
+    vastResponse = await vastClient.parseVAST(xml);
   }
 
-  return result;
+  if (!vastResponse) {
+    return [];
+  }
+
+  return await formatVastResponse(vastResponse);
 }
 
 async function scheduleForPackage(adMedia: AdMedia) {
