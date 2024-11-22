@@ -39,8 +39,9 @@ Give us a ⭐ if you like our work. Much appreciated!
 
 ```shell
 # We have prebuilt containers, see docker/docker-compose.yml
-
-cp config.env.example config.env
+cd docker
+# Copy the example config
+cp ../config.env.example config.env
 # Open config.env and change the variables.
 docker compose up -d
 ```
