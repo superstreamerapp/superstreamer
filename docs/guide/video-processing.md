@@ -1,168 +1,165 @@
 # Video processing
 
-To work with video, the first step is to upload your assets into the system. For instance, if you have an MP4 file as your source, we can use the transcode API to process it. This is typically the first step.
+We'll begin by processing and preparing our video source file (e.g., MP4, MKV, ...), ensuring it's properly formatted and optimized for the next stages of transcoding and packaging.
 
-## Why transcode?
+## Terminology
 
-There's reasons why we would transcode an input file. We'll explain them briefly.
+Before we dive in, let's cover some basic terminology. We'll keep this brief, but if you're eager to learn more about video, check out [howvideo.works](https://howvideo.works/). They provide a great explanation of the video delivery process from source to playback.
 
-- **Compatibility**
-  
-  Ensure the video format works across various devices and platforms.
+- Transcode
 
-- **Quality**
+  The first step is video transcoding, which converts a video from one format or codec to another, ensuring it works across different devices, browsers, and network conditions. For Superstreamer, this involves transcoding into various tracks, such as 720p or 1080p video, and stereo or surround audio.
 
-  Adjust resolution and bitrate for optimal playback quality based on user devices and network conditions.
+- Packaging
 
-- **Compression**
+  After transcoding, we have different video and audio tracks, but they need to be combined into a single format that can be played smoothly. Video packaging organizes these tracks so the player can easily access and switch between them based on the user's device and internet speed. For Superstreamer, we generate HLS playlists.
 
-  Decrease file size for easier storage and faster uploads/downloads.
+- HLS
 
-- **Streaming**
-  
-  Enable adaptive streaming by creating multiple resolutions for different bandwidths. Players can then pick what works for the user based on bandwidth estimations.
+  HLS (HTTP Live Streaming) is a protocol that splits video into small chunks and delivers them over HTTP. For Superstreamer, we focus exclusively on using HLS for streaming.
 
-## Start a transcode job
+## Start a transcode <Badge type="info" text="Step 1" />
 
-When you schedule a transcode job with the API, a unique UUID is assigned to each asset. We'll call this the `assetId` from now on. Each asset can be referenced to by providing this id in further steps.
+To stream an MP4 file to your audience, the process begins with transcoding it into various qualities, potentially adding multiple audio languages or subtitle tracks. To interact with Superstreamer, simply make an API request to get started.
 
-::: tip
+<img class="schema" src="/schema-transcode.png" />
 
-Video transcoding is the process of converting video, audio and text from one format to another. This involves changing the file's encoding to make it compatible with different devices, reduce its size, or adjust its quality.
+We'll begin by sending a `POST` request to the `/transcode` endpoint of our API. In this request, we'll specify the source files (our available inputs) and define the desired outputs — specifically, HD and Full HD video tracks, along with English audio.
 
-:::
+```sh
+curl -X POST
+  "https://api.domain.com/transcode"
+
+```
 
 ::: code-group
 
-```sh [Terminal]
-$ curl -X POST https://api-superstreamer.domain.com/transcode
-  -H "Content-Type: application/json"
-  -d "{body}" 
-```
-
-:::
-
-This is a body payload for the `BigBuckBunny.mp4` file we've uploaded to our S3 bucket, as specified in the config.env file. The source file contains a video and audio track. We've also uploaded a `BigBuckBunnyEng.vtt` file that contains the subtitles.
-
-```json
+```json [Request]
 {
-  "inputs": [
-    // Describe video input
+  "input": [
     {
-      "path": "s3://source/BigBuckBunny.mp4",
-      "type": "video"
+      "type": "video",
+      "url": "https://domain.com/video.mp4"
     },
-    // Describe audio input
     {
-      "path": "s3://source/BigBuckBunny.mp4",
       "type": "audio",
-      "language": "eng",
-      "channels": 2
-    },
-    // Describe text input
-    {
-      "path": "s3://source/BigBuckBunnyEng.vtt",
-      "type": "text",
+      "url": "https://domain.com/video.mp4",
       "language": "eng"
     }
   ],
   "streams": [
-    // We'd like to produce a HEVC encoded video stream.
-    {
-      "type": "video",
-      "codec": "hevc",
-      "height": 720,
-      "bitrate": 4000000,
-      "framerate": 24
-    },
-    // And an h264 encoded video stream, at a lower resolution.
     {
       "type": "video",
       "codec": "h264",
-      "height": 480,
-      "bitrate": 1500000,
-      "framerate": 24
+      "height": 1080
     },
-    // We'd like to create an audio stream, aac codec with 2 channels.
-    // If our source was 6 channels (surround), we'd be able to pass 6 here too.
+    {
+      "type": "video",
+      "codec": "h264",
+      "height": 720
+    },
     {
       "type": "audio",
       "codec": "aac",
-      "bitrate": 128000,
-      "language": "eng",
-      "channels": 2
-    },
-    // We want an "English" text track.
-    {
-      "type": "text",
       "language": "eng"
     }
-  ],
-  // We'll define the segment size upfront, this will be used for packaging purposes.
-  "segmentSize": 2,
+  ]
 }
 ```
-
-The result of the transcode job will be an `assetId`, this is a unique UUID that identifies a transcode result. From now on, we'll only work with this id. Eg; if you want to package this transcode result, all we'll have to do is provide this id.
-
-```json
-{
-  "assetId": "2d6e6c0e-07d9-48b1-8192-318f32a3b909"
-}
-```
-
-Let's quickly go over the steps that the transcode process did:
-
-- Download, or stream, the input file directly to ffmpeg.
-- Store the outcome on hard disk temporarily.
-- Upload the transcoded media file to S3.
-
-And it'll do these steps for each output stream separately. If you scale Artisan horizontally, it'll pick up each ffmpeg job individually across different machines and get to work. 
-
-That's great and all, but what do we do with the result of a transcode job? A transcode result is not playable by definition. We'll use the transcode result to package our asset into an HLS playlist.
-
-## Start a package job
-
-Now that we have transcoded our input file(s), we'll prepare them for streaming.
-
-::: tip
-
-Video packaging refers to the process of preparing a video file for delivery and consumption by users across different devices and platforms.
 
 :::
 
-We split the transcoding and packaging processes into two separate steps (API calls). This allows you to generate various packaging outputs from a single transcoding result. For instance, you can create both a DRM-protected and a standard HLS playlist from the same transcoded asset. By separating these steps, we avoid the need to re-transcode our assets, which is usually resource-intensive and can heavily utilize your CPU (and sometimes GPU). In contrast, packaging is a relatively light task.
+Under the hood, Superstreamer kicks off a transcode job to produce the output streams. Once completed, each job is assigned a unique UUID. For example, in this case, the UUID is `46169885-f274-43ad-ba59-a746d33304fd`.
+
+This request above will provide a response containing the jobId:
 
 ::: code-group
 
-```sh [Terminal]
-$ curl -X POST https://api-superstreamer.domain.com/package
-  -H "Content-Type: application/json"
-  -d "{body}" 
+```json [Response]
+{
+  "jobId": "transcode_46169885-f274-43ad-ba59-a746d33304fd"
+}
 ```
 
 :::
 
-All we'll have to do is instruct the packager to package a given `assetId`. When no transcode result is found for the given id, an error will be thrown.
+This UUID serves as a reference for the asset across all interactions with the Superstreamer API.
 
-```json
+When the job is done, we have separate video tracks in various quality levels and a single audio track in English, exactly the result we were aiming for.
+
+## Start a package <Badge type="info" text="Step 2" />
+
+Our video and audio tracks are stored as separate files. Let's package them into an HLS playlist, which players will use to determine what to load and at which resolution.
+
+<img class="schema" src="/schema-package.png" />
+
+We'll send a `POST` request to the `/package` endpoint of our API, and all we'll have to do is provide the assetId returned by our transcode job.
+
+```sh
+curl -X POST
+  "https://api.domain.com/package"
+```
+
+::: code-group
+
+```json [Request]
 {
-  "assetId": "2d6e6c0e-07d9-48b1-8192-318f32a3b909"
+  "assetId": "46169885-f274-43ad-ba59-a746d33304fd"
 }
 ```
 
-A package job runs the following steps:
+:::
 
-- Download all transcode results from S3 to local hard disk.
-- Package all different streams into an HLS playlist.
-- Upload the playlists, and the segments, back to S3 in the `/package` folder.
+We'll check the dashboard app to check the status of our transcode job.
 
-If you've properly configured config.env, your asset is now available for playback at the following URL:
+And that's it. We now have an HLS playlist available on our S3 bucket.
 
 ```
-{PUBLIC_S3_ENDPOINT}/package/2d6e6c0e-07d9-48b1-8192-318f32a3b909/hls/master.m3u8
+https://cdn.domain.com/package/46169885-f274-43ad-ba59-a746d33304fd/master.m3u8
 ```
 
-And tada, you now have a playable asset that can be played with HLS.js! 🎉 🥳
+## Start a pipeline
 
-Give it a try and play your asset in the HLS.js demo page: https://hlsjs.video-dev.org/demo/
+In earlier steps, we covered how to transcode and package your video file. With a pipeline job, these two steps can be combined into a single process.
+
+```sh
+curl -X POST
+  "https://api.domain.com/pipeline"
+
+```
+
+```json [Request]
+{
+  "input": [
+    {
+      "type": "video",
+      "url": "https://domain.com/video.mp4"
+    },
+    {
+      "type": "audio",
+      "url": "https://domain.com/video.mp4",
+      "language": "eng"
+    }
+  ],
+  "streams": [
+    {
+      "type": "video",
+      "codec": "h264",
+      "height": 1080
+    },
+    {
+      "type": "video",
+      "codec": "h264",
+      "height": 720
+    },
+    {
+      "type": "audio",
+      "codec": "aac",
+      "language": "eng"
+    }
+  ]
+}
+```
+
+
+The pipeline job generates a unique UUID, and once complete, your asset is instantly available as an HLS playlist — just as if you had packaged it manually.

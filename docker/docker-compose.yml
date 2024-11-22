@@ -24,7 +24,6 @@ services:
     env_file: config.env
     environment:
       - REDIS_HOST=superstreamer-redis
-      - REDIS_PORT=6379
       - DATABASE_URI=postgresql://postgres:sprs@superstreamer-postgres/sprs
 
   superstreamer-stitcher:
@@ -37,7 +36,6 @@ services:
     env_file: config.env
     environment:
       - REDIS_HOST=superstreamer-redis
-      - REDIS_PORT=6379
       - PUBLIC_API_ENDPOINT=http://localhost:52001
       - PUBLIC_STITCHER_ENDPOINT=http://localhost:52002
 
@@ -49,7 +47,6 @@ services:
     env_file: config.env
     environment:
       - REDIS_HOST=superstreamer-redis
-      - REDIS_PORT=6379
 
   superstreamer-redis:
     image: redis/redis-stack-server:7.2.0-v6

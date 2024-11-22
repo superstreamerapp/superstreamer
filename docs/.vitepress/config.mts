@@ -39,7 +39,7 @@ export default defineConfig({
       provider: "algolia",
       options: {
         appId: "4JIX5YPW7R",
-        apiKey: "004a506c5ecd75d2a16d12feefc7af58",
+        apiKey: "97be940a67cc7ae000c625203b1c51f1",
         indexName: "matvp91io",
       },
     },
@@ -108,35 +108,46 @@ function sidebarGuide() {
           text: "Getting Started",
           link: "getting-started",
         },
-        {
-          text: "Packages",
-          link: "packages",
-        },
-        {
-          text: "Learning",
-          link: "learning",
-        },
       ],
     },
     {
-      text: "Features",
+      text: "Project",
       items: [
         {
-          text: "Video processing",
-          link: "video-processing",
+          text: "What's included",
+          link: "whats-included",
         },
         {
-          text: "Playlist manipulation",
-          link: "playlist-manipulation",
+          text: "Building blocks",
+          link: "building-blocks",
+          items: [
+            {
+              text: "Video processing",
+              link: "video-processing",
+            },
+            {
+              text: "Video personalization",
+              link: "video-personalization",
+            },
+            {
+              text: "Player",
+              link: "player",
+            },
+          ],
         },
         {
-          text: "Player",
-          link: "player",
-        },
-        {
-          text: "Dashboard",
-          link: "dashboard",
-        },
+          text: "Tutorials",
+          items: [
+            {
+              text: "Play adaptive video",
+              link: "tutorials/play-adaptive-video"
+            },
+            {
+              text: "Add bumper like Netflix",
+              link: "tutorials/add-bumper-like-netflix"
+            }
+          ]
+        }
       ],
     },
     {
@@ -147,8 +158,8 @@ function sidebarGuide() {
           link: "contribute",
         },
         {
-          text: "Credits",
-          link: "credits",
+          text: "Thank you",
+          link: "thank-you",
         },
       ],
     },
