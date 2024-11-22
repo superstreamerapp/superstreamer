@@ -1,5 +1,4 @@
-import * as fs from "node:fs/promises";
-import { getS3SignedUrl } from "./s3";
+import { getS3SignedUrl, getTextFromS3 } from "./s3";
 import type { PartialInput, Stream } from "bolt";
 
 export async function getBinaryPath(name: string) {
@@ -41,11 +40,11 @@ export interface MetaStruct {
 }
 
 /**
- * Will fetch meta file when meta.json is found in path.
- * @param path S3 dir
+ * Will fetch meta file when meta.json
+ * @param assetId
  * @returns
  */
-export async function getMetaStruct(path: string): Promise<MetaStruct> {
-  const text = await fs.readFile(`${path}/meta.json`, "utf8");
-  return JSON.parse(text.toString());
+export async function getMetaStruct(assetId: string): Promise<MetaStruct> {
+  const text = await getTextFromS3(`transcode/${assetId}/meta.json`);
+  return JSON.parse(text);
 }

@@ -26,5 +26,9 @@ export const outcomeCallback: WorkerCallback<OutcomeData> = async ({ job }) => {
       });
       break;
     }
+    case "image": {
+      // TODO: Store thumbnail in database.
+      break;
+    }
   }
 };
