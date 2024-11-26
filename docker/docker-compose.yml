@@ -24,13 +24,7 @@ services:
     env_file: config.env
     environment:
       - REDIS_HOST=superstreamer-redis
-      - REDIS_PORT=6379
       - DATABASE_URI=postgresql://postgres:sprs@superstreamer-postgres/sprs
-      - S3_ENDPOINT=${S3_ENDPOINT}
-      - S3_REGION=${S3_REGION}
-      - S3_ACCESS_KEY=${S3_ACCESS_KEY}
-      - S3_SECRET_KEY=${S3_SECRET_KEY}
-      - S3_BUCKET=${S3_BUCKET}
 
   superstreamer-stitcher:
     image: "superstreamerapp/stitcher:alpha"
@@ -42,14 +36,8 @@ services:
     env_file: config.env
     environment:
       - REDIS_HOST=superstreamer-redis
-      - REDIS_PORT=6379
       - PUBLIC_API_ENDPOINT=http://localhost:52001
       - PUBLIC_STITCHER_ENDPOINT=http://localhost:52002
-      - S3_ENDPOINT=${S3_ENDPOINT}
-      - S3_REGION=${S3_REGION}
-      - S3_ACCESS_KEY=${S3_ACCESS_KEY}
-      - S3_SECRET_KEY=${S3_SECRET_KEY}
-      - S3_BUCKET=${S3_BUCKET}
 
   superstreamer-artisan:
     image: "superstreamerapp/artisan:alpha"
@@ -59,12 +47,6 @@ services:
     env_file: config.env
     environment:
       - REDIS_HOST=superstreamer-redis
-      - REDIS_PORT=6379
-      - S3_ENDPOINT=${S3_ENDPOINT}
-      - S3_REGION=${S3_REGION}
-      - S3_ACCESS_KEY=${S3_ACCESS_KEY}
-      - S3_SECRET_KEY=${S3_SECRET_KEY}
-      - S3_BUCKET=${S3_BUCKET}
 
   superstreamer-redis:
     image: redis/redis-stack-server:7.2.0-v6

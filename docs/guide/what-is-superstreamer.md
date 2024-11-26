@@ -1,105 +1,65 @@
 # What is Superstreamer?
 
-Superstreamer is here to make video delivery simple. Imagine having everything you need in one platform — starting with your raw video, Superstreamer helps you transcode it, package it into HLS playlists, and upload it to S3 with ease. You can even create custom playlists for each viewer, adding bumpers, ads, or filters on the fly.
+Superstreamer is an open-source platform designed to simplify video delivery. It offers the tools you need to easily integrate high-quality video streaming into your applications. 
 
-When it's time for your audience to watch, Superstreamer's elegant web player ensures your videos are delivered smoothly and look great on any device. It takes the hassle out of streaming, so viewers can enjoy your content without any interruptions.
+Our goal is to create a robust, flexible solution that empowers developers, hobbyists, and companies alike to focus on delivering amazing video experiences, similar to how Netflix, YouTube or Vimeo work. 
 
-There are plenty of great video tools out there, but we saw a gap — a unified platform to bring all those tools together. Our mission with Superstreamer is to make video more accessible for developers, letting them focus on their projects without getting bogged down by the technical details.
+[Join our community](https://discord.gg/4hXgz9EsF4) and help us make video streaming more accessible together.
 
-::: info
-Can't wait? Head over to our [Getting Started](/guide/getting-started) page and jump right into it!
-:::
+## Why?
 
-::: tip
+Delivering video is complicated because there are so many different ways to process, store, and deliver video content. 
 
-Check out these cool screen recordings of the dashboard app! Click <a target="_blank" href="/guide/dashboard">here</a> to view them. The link will open in a new tab, so you won't lose your place.
+You have to deal with things like video quality, file sizes, compatibility across devices, and fast delivery speeds. Right now, there are lots of different tools and approaches, but they don't always work well together. 
 
-:::
+Our goal is to focus on just the important basics and make them work perfectly together, using the standards everyone already uses, so it's easier for everyone to create and watch videos.
 
-## How it works
+::: details Our technical mantra
 
-Everyone loves schemas, and we're no exception. Let's break down how Superstreamer works and how all the packages are interconnected.
-
-You've got an epic video file named Frames_Of_Thrones.mp4. It's hefty, and you want to deliver it to your audience with a seamless viewing experience, complete with subtitle options in various languages. Your goal is to provide the best possible experience for your viewers.
-
-### Transcode <Badge type="info" text="Step 1" />
-
-First, we'll take the source file and create several video streams, ranging from 480p to 1080p — like the options you see on YouTube. We'll also point the player to the audio track, which in this case is embedded in the MP4 file. To top it off, we'll include a couple of subtitle files.
-
-<img class="schema" src="/schema-transcode.png" />
-
-<details class="details custom-block minimal">
-  <summary>Steps to take</summary>
-
-  1. You send a transcode request to the API using your file or s3 URL as the input, along with a few output stream definitions.
-  2. The API will push a transcode job to Redis.
-  3. One, or multiple (if you're into scale), Artisan instances will grab jobs from Redis, and produce outputs streams locally.
-  4. Each Artisan instance will push their output stream to S3.
-  5. Finally, the API will assign a unique Asset ID to the process, allowing us to continue working with it.
-</details>
-
-### Package <Badge type="info" text="Step 2" />
-
-So, we've taken our original video, sliced it up into different qualities, bitrates — event threw in some subtitles and a surround sound track for good measure. Awesome, right? Well... now we've got a bunch of separate files hanging out on S3. We need to bundle these up so the video player can actually make sense of the mess.
-
-<img class="schema" src="/schema-package.png" />
-
-<details class="details custom-block minimal">
-  <summary>Steps to take</summary>
-
-  1. You send a package request to the API with the Asset ID from the transcode process.
-  2. The API will push a package job to Redis.
-  3. An Artisan instance will download the transcoded files and generate an HLS playlist along with the video segments locally.
-  4. The HLS master playlist, media playlists and segments are uploaded to S3 with public permissions.
-</details>
-
-### Play <Badge type="info" text="Step 3" />
-
-Alright, we've got our HLS playlist sitting in the S3 bucket. You could hit play and call it a day, sure, but where's the fun in that? Like, we've got this NotFlix bumper — _tuduuuum_ — and we want to slap it right in front of our Frames of Thrones masterpiece. So, what do we do? We transcode and package that bumper, then tell our stitcher to whip up a new playlist on the fly, combining our bumper with the main content. Boom — playlist magic! 🪄
-
-<img class="schema schema-stitcher" src="/schema-stitcher.png" />
-
-<details class="details custom-block minimal">
-  <summary>Steps to take</summary>
-
-  1. You send a session request to the Sticher API, with the Asset ID from the transcode (or package, they're the same) process, along with your parameters (eg; ad insertion, bumper, ...)
-  2. Stitcher will prepare a unique playlist for this session, which the player downloads.
-  3. The player can now play the video, it will grab the rest (such as segments) from S3 directly.
-</details>
-
-### Monitor
-
-We'd like to keep an eye on what Superstreamer is up to behind the scenes. Don't worry, we've got a handy little app we call the dashboard. It's like a reality show for your jobs — complete with a list that shows all the action, including status updates and how long everything takes.
-
-And if you're feeling ambitious and want to integrate Superstreamer into your own project (which, let's face it, if you're in the video biz, you absolutely should try), interacting with the API from your backend is a walk in the park.
-
-<img class="schema schema-dashboard" src="/schema-dashboard.png" />
-
-## Developer Experience
-
-- **Simplified workflow**
-
-  Handling video at scale involves multiple steps: ingesting source files, transcoding them into various formats, packaging for different devices, and ensuring smooth delivery. Superstreamer streamlines these steps into a unified workflow.
-
-- **Scalability**
-
-  Video platforms often need to serve content to large, diverse audiences, which requires infrastructure that can handle spikes in traffic and support multiple video formats. Superstreamer can be scaled horizontally due to a built-in queue / worker architecture and works great with any S3 compliant storage.
-
-- **Customization and Personalization**
-
-  Modern video platforms often need to deliver personalized content, such as inserting targeted ads, bumpers, or even dynamically altering playlists based on user behavior. Superstreamer is built for these needs and can handle the real-time processing required to customize video streams.
-
-- **Cost Efficiency**
-
-  Building and maintaining a full-scale video pipeline can be resource-intensive. Fortunately, Superstreamer isn't tied to a single vendor, allowing you the freedom to choose the most effective and cost-efficient strategies for your media setup.
-
-## Core Standards
-
-We believe in sticking to the tried-and-true standards that make video delivery easier for everyone. By using common formats like H.264, HEVC, AAC, EC-3, ... and streaming methods like HLS, we make sure our platform works smoothly across all devices. When it comes to ads, we stick to IAB VAST for placements, which helps us connect easily with different advertising networks.
-
-Video is already a pretty fragmented space. By sticking to our standards, we aim to cut through that confusion and make things more straightforward. When you don't have to tackle everything at once, it's much easier to strive for perfection. That's why we made these thoughtful choices:
+If you're familiar with video engineering, the terms below might sound familiar. We aim to reduce the fragmentation in the field, and we believe we can excel by focusing on a select few aspects and perfecting them.
 
 - HLS as a playlist format, with CMAF containered segments.
-- Inserting and playing other playlists, like ads, depends completely on [HLS interstitials](https://developer.apple.com/streaming/GettingStartedWithHLSInterstitials.pdf).
+- Inserting and playing other playlists, like ads, depends completely on HLS interstitials. Watch Apple's [Intertitials Intro](https://developer.apple.com/videos/play/wwdc2024/10114/#:~:text=With%20HLS%20interstitials%2C%20ads%20or,content's%20Program%2DDate%2DTime.) video announced at WWDC24.
 - No VAST on the client, ever. 😜
 - Don't reinvent the wheel — leverage the fantastic work of others. If that means making open-source contributions, we're all for it.
+:::
+
+## Building blocks
+
+The project is made up of several building blocks, each designed to handle specific tasks in the video streaming process. It's important to know that you don't need to use everything — this isn't an all-or-nothing solution. We want to avoid vendor lock-in, so you're free to pick and choose the building blocks that best fit your needs. 
+
+For example, you can use our tool for real-time video manipulation (like inserting a bumper or ads), while still transcoding and packaging your video files elsewhere, such as using [Mux](https://www.mux.com/) for those steps. 
+
+The flexibility is yours to create the workflow that works best for you.
+
+## Use cases
+
+To users, video seems simple – it just plays, right? But delivering a smooth experience for every viewer is actually quite complex. Video isn't as straightforward as it appears. We're here to take care of the technical challenges and make video delivery easy for you.
+
+- Optimize for speed and quality
+
+  Need your videos to load faster and look great? This tool makes sure your videos play quickly and at the best quality, no matter the device. If your viewers have slow internet, the [transcode tool](/guide/process#start-a-transcode) can adjust the video quality so it still plays smoothly without buffering.
+
+- Convert to different formats
+
+  Want to play your video on any device? Our transcode tool changes your video to the right format so everyone can watch it, in different qualities depending on the viewer' bandwidth.
+
+- Monetize your content
+
+  Our ad insertion tool lets you add ads at the perfect moment to earn revenue while keeping the viewer engaged.
+
+- Package for streaming
+
+  Ready to show your video online? Our [package tool](/guide/process#create-a-package) packages your video so it streams smoothly to your viewers, no matter where they are.
+
+- Create custom playlists
+
+  Want to give your viewers a personalized video experience? Our [stitcher tool](/guide/stitch) lets you change the video order in real-time, so each viewer gets something unique.
+
+- Client streaming library
+
+  Need an easy way to work with [HLS.js](https://github.com/video-dev/hls.js)? Our player's facade makes it super simple to integrate streaming into your project, without dealing with complex video library code. Just focus on your content, and let the player handle the rest.
+
+- Player
+
+  Want a beautiful, modern video player? Our React component offers an eye-catching design and smooth functionality, giving your viewers an amazing experience.

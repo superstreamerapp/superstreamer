@@ -4,28 +4,22 @@ outline: [2,3]
 
 # Player
 
-The team behind [HLS.js](https://github.com/video-dev/hls.js/), an open-source HLS streaming library in JavaScript, does an outstanding job maintaining it. While it's an excellent resource for streaming, HLS.js is designed primarily as a streaming library, which is great if you're already familiar with HLS. However, there's a bit of a learning curve if you're looking to build your project on top of it.
+Superstreamer comes with a player wrapper around [HLS.js](https://github.com/video-dev/hls.js/). Our goal is to offer a simplified API alongside HLS.js, tailored for developers building a player UI, while preserving access to the powerful features that HLS.js provides.
 
-The goal of our player wrapper is to offer a simplified API alongside HLS.js, tailored for developers building a player UI, while preserving access to the powerful features that HLS.js provides. The wrapper, which we'll refer to as _facade_ from here on, focuses on the following goals:
+<iframe class="iframe" style="aspect-ratio: 13.55 / 9;" src="https://stackblitz.com/edit/superstreamer-player-demo?embed=1&file=src%2FPlayer.tsx&view=preview"></iframe>
+
+The wrapper focuses on the following goals:
 
 - Offer intuitive data structures, events, and methods tailored for developers building a player UI.
 - Implement a robust state machine.
 - Provide simplified player-centric methods like `playOrPause`, `setVolume`, and more.
 - Support spec-compliant plugins, including features like ad signaling.
 
-Beyond the facade, we've also provided useful React hooks for consuming state within components. More details will follow, but the key insight is that building a React UI on top of rapidly changing state can impact performance. Our hooks allow you to efficiently consume player state by creating small, memoized subsets of the specific state needed for each component, ensuring optimal performance.
-
 ::: tip
 
 If you're only interested in the React bindings and components, you can skip the facade section. The React integration uses a facade internally, so there's no need for you to provide one yourself.
 
 :::
-
-## Live demo
-
-What's a player page without a live demo! Have a play with it, you'll love our controls. We've hosted a sample on StackBlitz, which means you can look at the implementation code and make adjustments as you like.
-
-<iframe class="iframe" style="aspect-ratio: 13.55 / 9;" src="https://stackblitz.com/edit/superstreamer-player-demo?embed=1&file=src%2FPlayer.tsx&view=preview"></iframe>
 
 ## Installation
 
@@ -61,9 +55,7 @@ We're currently using a beta version of HLS.js, v1.6.0-beta.1. Once the final re
 
 ## Facade
 
-We prefer not to call it a wrapper, since it doesn't wrap HLS.js but operates alongside it as an additional way to interact with your video. Just create a new `HlsFacade` instance and pass it your existing `Hls` instance
-
-Start by consulting the HLS.js [docs](https://github.com/video-dev/hls.js/) first.
+Create a new `HlsFacade` instance and pass it your existing `Hls` instance Start by consulting the HLS.js [docs](https://github.com/video-dev/hls.js/) first.
 
 ::: code-group
 
@@ -87,7 +79,13 @@ hls.loadSource("https://domain.com/master.m3u8");
 
 ## React
 
-Using React to define your UI declaratively is far more enjoyable than taking an imperative approach. Since the UI serves as a visual representation of the state, creating controls in React is a pleasant experience. However, there are some considerations to keep in mind. Extracting state from the facade and storing it in memory solely to inform React of changes can be resource-intensive. That's why we've dedicated significant effort to ensuring that state updates are as lightweight as possible.
+Using React to define your UI declaratively is far more enjoyable than taking an imperative approach. Since the UI serves as a visual representation of the state, creating controls in React is a pleasant experience. 
+
+However, there are some considerations to keep in mind. 
+
+Extracting state from the facade and storing it in memory solely to inform React of changes can be resource-intensive. That's why we've dedicated significant effort to ensuring that state updates are as lightweight as possible.
+
+Our hooks allow you to efficiently consume player state by creating small, memoized subsets of the specific state needed for each component, ensuring optimal performance.
 
 ### Tailwind
 

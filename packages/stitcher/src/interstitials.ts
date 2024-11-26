@@ -12,7 +12,7 @@ import type { DateTime } from "luxon";
 export type InterstitialType = "ad" | "bumper";
 
 export interface Interstitial {
-  position: number;
+  timeOffset: number;
   url: string;
   duration?: number;
   type?: InterstitialType;
@@ -38,7 +38,7 @@ export function getStaticDateRanges(startTime: DateTime, session: Session) {
 
   if (session.interstitials) {
     for (const interstitial of session.interstitials) {
-      group.add(interstitial.position, interstitial.type);
+      group.add(interstitial.timeOffset, interstitial.type);
     }
   }
 
@@ -125,7 +125,7 @@ async function getAssetsFromGroup(
   const assets: InterstitialAsset[] = [];
 
   for (const interstitial of interstitials) {
-    if (interstitial.position !== timeOffset) {
+    if (interstitial.timeOffset !== timeOffset) {
       continue;
     }
 

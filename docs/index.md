@@ -4,8 +4,8 @@ layout: home
 
 hero:
   name: Superstreamer
-  text: Effortless video
-  tagline: All-in-one toolkit from ingest to adaptive video playback.
+  text: Deliver video
+  tagline: Building blocks for video streaming that's smooth, simple, and scales like a champ!
   actions:
     - theme: brand
       text: Introduction
@@ -32,12 +32,12 @@ features:
       src: /icon-package.svg
       width: 40
   - title: Stitcher
-    details: Manipulate and craft HLS playlists on the fly, supports HLS interstitials.
+    details: Personalize and tailor each video on the fly with HLS interstitials, customized for every viewer.
     icon: 
       src: /icon-stitcher.svg
       width: 54
   - title: Player
-    details: A unified <a href="https://github.com/video-dev/hls.js">HLS.js</a> API and React components that integrate seamlessly.
+    details: A unified API and React components that seamlessly integrate into your player.
     icon: 
       src: /icon-player.svg
       width: 37

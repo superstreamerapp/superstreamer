@@ -2,41 +2,6 @@
 
 This is a living document about notes from contributors. If you'd like to contribute yourself, feel free to read through this info first.
 
-## Project structure
-
-Superstreamer consists of multiple packages, each serve their own purpose. This is particularly handy when you want to scale. You could easily run a package on multiple machines, such as Artisan.
-
-<table>
-  <thead>
-    <tr>
-      <th>Package</th>
-      <th>Description</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td><a href="https://github.com/matvp91/superstreamer/tree/main/packages/app" target="_blank"><b>App</b></a></td>
-      <td>A front-end that uses the API and visualizes running jobs.</td>
-    </tr>
-    <tr>
-      <td><a href="https://github.com/matvp91/superstreamer/tree/main/packages/api" target="_blank"><b>API</b></a></td>
-      <td>Used to interact with the system. Start transcode jobs, get a list of pending jobs, and much more.</td>
-    </tr>
-    <tr>
-      <td><a href="https://github.com/matvp91/superstreamer/tree/main/packages/artisan" target="_blank"><b>Artisan</b></a></td>
-      <td>The main job runner, can be run on as many machines as you like.</td>
-    </tr>
-    <tr>
-      <td><a href="https://github.com/matvp91/superstreamer/tree/main/packages/stitcher" target="_blank"><b>Stitcher</b></a></td>
-      <td>An HLS playlist proxy for on the fly manipulation, such as interstitials insertion and resolution filtering.</td>
-    </tr>
-    <tr>
-      <td><a href="https://github.com/matvp91/superstreamer/tree/main/packages/player" target="_blank"><b>Player</b></a></td>
-      <td>An easy to use HLS.js wrapper and UI built with React.</td>
-    </tr>
-  </tbody>
-</table>
-
 ## Running jobs
 
 We rely on [BullMQ](https://docs.bullmq.io/), a queue job runner, to define transcode, package and ffmpeg jobs. Eg; take the `/transcode` endpoint, this will push a job to the Redis queue. Artisan constantly monitors the Redis queue for pending work, and when there is a pending job available, it'll start working on that. When finished, it'll update the job that it finished.

@@ -62,7 +62,7 @@ export const sessionRoutes = new Elysia()
         interstitials: t.Optional(
           t.Array(
             t.Object({
-              position: t.Number(),
+              timeOffset: t.Number(),
               uri: t.String(),
               duration: t.Optional(t.Number()),
               type: t.Optional(t.Union([t.Literal("ad"), t.Literal("bumper")])),

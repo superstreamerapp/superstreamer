@@ -26,7 +26,7 @@ export async function createSession(params: {
     url: string;
   };
   interstitials?: {
-    position: number;
+    timeOffset: number;
     uri: string;
     duration?: number;
     type?: InterstitialType;
@@ -46,7 +46,7 @@ export async function createSession(params: {
   if (params.interstitials) {
     session.interstitials = params.interstitials.map((interstitial) => {
       return {
-        position: interstitial.position,
+        timeOffset: interstitial.timeOffset,
         url: resolveUri(interstitial.uri),
         duration: interstitial.duration,
         type: interstitial.type,
