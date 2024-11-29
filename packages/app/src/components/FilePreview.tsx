@@ -63,6 +63,9 @@ function Preview({ file }: { file: StorageFile }) {
         <audio src={file.url} controls className="w-full max-w-lg mx-auto" />
       );
     }
+    if (file.type === "image") {
+      return <img src={file.url} className="w-full" />;
+    }
   }
   return null;
 }

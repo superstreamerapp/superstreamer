@@ -66,8 +66,20 @@ export type OutcomeData =
   | {
       type: "package";
       data: PackageData;
+    }
+  | {
+      type: "image";
+      data: ImageData;
     };
 
 export const outcomeQueue = new Queue<OutcomeData>("outcome", {
+  connection,
+});
+
+export interface ImageData {
+  assetId: string;
+}
+
+export const imageQueue = new Queue<ImageData>("image", {
   connection,
 });

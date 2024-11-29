@@ -58,7 +58,7 @@ export type StorageFolder = Static<typeof StorageFolderSchema>;
 export const StorageFileSchema = t.Union([
   t.Object({
     mode: t.Literal("url"),
-    type: t.Union([t.Literal("video"), t.Literal("audio")]),
+    type: t.Union([t.Literal("video"), t.Literal("image"), t.Literal("audio")]),
     url: t.String(),
   }),
   t.Object({

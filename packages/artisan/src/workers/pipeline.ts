@@ -1,5 +1,6 @@
 import {
   addToQueue,
+  imageQueue,
   packageQueue,
   transcodeQueue,
   waitForChildren,
@@ -83,6 +84,16 @@ async function handleStepContinue(job: Job<PipelineData>, token?: string) {
       assetId: job.data.assetId,
       name: job.data.name,
       language: job.data.language,
+    },
+    {
+      parent: job,
+    },
+  );
+
+  await addToQueue(
+    imageQueue,
+    {
+      assetId: job.data.assetId,
     },
     {
       parent: job,

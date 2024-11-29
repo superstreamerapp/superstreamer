@@ -5,6 +5,7 @@ import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { ConfiguredRetryStrategy } from "@smithy/util-retry";
 import { lookup } from "mime-types";
 import { S3SyncClient } from "s3-sync-client";
+import { assert } from "shared/assert";
 import { env } from "../env";
 import type { PutObjectCommandInput } from "@aws-sdk/client-s3";
 import type { CommandInput } from "s3-sync-client";
@@ -115,4 +116,17 @@ export async function getS3SignedUrl(
     expiresIn,
   });
   return url;
+}
+
+export async function getTextFromS3(remoteFilePath: string) {
+  const command = new GetObjectCommand({
+    Bucket: env.S3_BUCKET,
+    Key: remoteFilePath,
+  });
+  const response = await client.send(command);
+
+  const text = response.Body?.transformToString("utf-8");
+  assert(text, `Failed to get text from S3 "${remoteFilePath}"`);
+
+  return text;
 }

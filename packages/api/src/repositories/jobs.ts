@@ -2,6 +2,7 @@ import {
   ffmpegQueue,
   ffprobeQueue,
   flowProducer,
+  imageQueue,
   outcomeQueue,
   packageQueue,
   pipelineQueue,
@@ -19,6 +20,7 @@ const allQueus = [
   ffmpegQueue,
   ffprobeQueue,
   outcomeQueue,
+  imageQueue,
 ];
 
 function findQueueByName(name: string): Queue {
