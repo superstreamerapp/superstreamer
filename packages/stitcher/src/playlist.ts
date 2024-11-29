@@ -1,6 +1,6 @@
 import { assert } from "shared/assert";
 import { filterMasterPlaylist, formatFilterToQueryParam } from "./filters";
-import { getAssets, getStaticDateRanges } from "./interstitials";
+import { getStaticDateRanges } from "./interstitials";
 import { encrypt } from "./lib/crypto";
 import { joinUrl, makeUrl, resolveUri } from "./lib/url";
 import {
@@ -84,13 +84,6 @@ export async function formatMediaPlaylist(
   });
 
   return stringifyMediaPlaylist(media);
-}
-
-export async function formatAssetList(session: Session, timeOffset?: number) {
-  const assets = await getAssets(session, timeOffset);
-  return {
-    ASSETS: assets,
-  };
 }
 
 async function fetchMasterPlaylist(url: string) {

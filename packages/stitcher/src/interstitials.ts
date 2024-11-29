@@ -1,11 +1,11 @@
 import { Group } from "./lib/group";
 import { makeUrl, resolveUri } from "./lib/url";
 import { fetchDuration } from "./playlist";
-import { getAdMediasFromAdBreak } from "./vast";
+import { extractPlayableAdSlots } from "./vast";
 import { toAdBreakTimeOffset } from "./vmap";
 import type { DateRange } from "./parser";
 import type { Session } from "./session";
-import type { AdMedia } from "./vast";
+import type { AdSlot } from "./vast";
 import type { VmapResponse } from "./vmap";
 import type { DateTime } from "luxon";
 
@@ -22,6 +22,7 @@ interface InterstitialAsset {
   URI: string;
   DURATION: number;
   "SPRS-TYPE"?: InterstitialType;
+  "X-AD-CREATIVE-SIGNALING"?: object;
 }
 
 export function getStaticDateRanges(startTime: DateTime, session: Session) {
@@ -78,7 +79,14 @@ export function getStaticDateRanges(startTime: DateTime, session: Session) {
   return dateRanges;
 }
 
-export async function getAssets(session: Session, timeOffset?: number) {
+export async function formatAssetList(session: Session, timeOffset?: number) {
+  const assets = await getAssets(session, timeOffset);
+  return {
+    ASSETS: assets,
+  };
+}
+
+async function getAssets(session: Session, timeOffset?: number) {
   const assets: InterstitialAsset[] = [];
 
   if (timeOffset !== undefined) {
@@ -88,7 +96,7 @@ export async function getAssets(session: Session, timeOffset?: number) {
     }
 
     if (session.interstitials) {
-      const items = await getAssetsFromGroup(session.interstitials, timeOffset);
+      const items = await getAssetsFromList(session.interstitials, timeOffset);
       assets.push(...items);
     }
   }
@@ -102,23 +110,27 @@ async function getAssetsFromVmap(vmap: VmapResponse, timeOffset: number) {
   );
   const assets: InterstitialAsset[] = [];
 
-  const adMedias: AdMedia[] = [];
+  const adSlots: AdSlot[] = [];
   for (const adBreak of adBreaks) {
-    adMedias.push(...(await getAdMediasFromAdBreak(adBreak)));
+    const playableAdSlots = await extractPlayableAdSlots(adBreak);
+    adSlots.push(...playableAdSlots);
   }
 
-  for (const adMedia of adMedias) {
+  let startTime = 0;
+  for (const adSlot of adSlots) {
     assets.push({
-      URI: resolveUri(`asset://${adMedia.assetId}`),
-      DURATION: adMedia.duration,
+      URI: resolveUri(`asset://${adSlot.id}`),
+      DURATION: adSlot.duration,
       "SPRS-TYPE": "ad",
+      "X-AD-CREATIVE-SIGNALING": getSlotCreativeSignaling(adSlot, startTime),
     });
+    startTime += adSlot.duration;
   }
 
   return assets;
 }
 
-async function getAssetsFromGroup(
+async function getAssetsFromList(
   interstitials: Interstitial[],
   timeOffset: number,
 ) {
@@ -149,4 +161,19 @@ function makeAssetListUrl(params: { timeOffset: number; session?: Session }) {
     timeOffset: params.timeOffset,
     sid: params.session?.id,
   });
+}
+
+function getSlotCreativeSignaling(adSlot: AdSlot, startTime: number) {
+  return {
+    version: 2,
+    type: "slot",
+    payload: [
+      {
+        type: "linear",
+        start: startTime,
+        duration: adSlot.duration,
+        tracking: adSlot.impressions,
+      },
+    ],
+  };
 }
