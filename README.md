@@ -46,29 +46,6 @@ cp ../config.env.example config.env
 docker compose up -d
 ```
 
-### Quick Dev Environment Setup
-
-We have also created a `docker-compose-dev.yml` so you can setup your development environment faster and start getting hands on!
-
-```shell
-# We have prebuilt developmnet containers, see docker/docker-compose-dev.yml
-cd docker
-docker-compose -f docker-compose-dev.yml up
-
-# Start a new terminal
-# Copy the example config
-cp config.env.example.dev config.env
-
-# Install dependencies
-bun install
-
-# Install binary dependencies, such as ffmpeg
-bun run install-bin
-
-# RUN!
-bun run dev
-```
-
 Dive into the [Documentation](https://superstreamer.xyz) and do not hesitate to ask questions on [Discord](https://discord.gg/4hXgz9EsF4).
 
 ## Support
