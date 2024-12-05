@@ -1,16 +1,23 @@
 import {
   ffmpegQueue,
   ffprobeQueue,
-  flowProducer,
   outcomeQueue,
   packageQueue,
   pipelineQueue,
   transcodeQueue,
 } from "bolt";
-import { Job as RawJob } from "bullmq";
+import { FlowProducer, Job as RawJob } from "bullmq";
+import { env } from "../env";
 import { isRecordWithNumbers } from "../utils/type-guard";
 import type { Job } from "../types";
 import type { JobNode, JobState, Queue } from "bullmq";
+
+const flowProducer = new FlowProducer({
+  connection: {
+    host: env.REDIS_HOST,
+    port: env.REDIS_PORT,
+  },
+});
 
 const allQueus = [
   pipelineQueue,

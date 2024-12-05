@@ -12,10 +12,8 @@
     "lint": "tsc && eslint"
   },
   "dependencies": {
-    "@sinclair/typebox": "^0.32.34",
     "dotenv": "^16.4.5",
     "find-config": "^1.0.0",
-    "iso-language-codes": "^2.0.0",
     "zod": "^3.23.8"
   },
   "devDependencies": {

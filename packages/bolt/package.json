@@ -3,10 +3,7 @@
   "private": true,
   "version": "0.0.0",
   "type": "module",
-  "exports": {
-    ".": "./src/index.ts",
-    "./types": "./src/types.ts"
-  },
+  "main": "./src/index.ts",
   "scripts": {
     "lint": "tsc && eslint"
   },

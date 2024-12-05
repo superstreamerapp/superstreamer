@@ -1,15 +1,17 @@
+import { CloudflareKv } from "./cloudflare-kv";
+import { RedisKv } from "./redis-kv";
 import { env } from "../../env";
 
-interface KeyValue {
+export interface Kv {
   set(key: string, value: string, ttl: number): Promise<void>;
   get(key: string): Promise<string | null>;
 }
 
-export let kv: KeyValue;
+export let kv: Kv;
 
-// Map each KV adapter here to their corresponding import.
+// Map each KV adapter here to their corresponding constructor.
 if (env.KV === "cloudflare-kv") {
-  kv = await import("./cloudflare-kv");
+  kv = new CloudflareKv();
 } else if (env.KV === "redis") {
-  kv = await import("./redis");
+  kv = new RedisKv(env.REDIS_HOST, env.REDIS_PORT);
 }

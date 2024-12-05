@@ -1,14 +1,6 @@
-export enum AudioCodec {
-  aac = "aac",
-  ac3 = "ac3",
-  eac3 = "eac3",
-}
+export type VideoCodec = "h264" | "vp9" | "hevc";
 
-export enum VideoCodec {
-  h264 = "h264",
-  vp9 = "vp9",
-  hevc = "hevc",
-}
+export type AudioCodec = "aac" | "ac3" | "eac3";
 
 export type PartialStream =
   | {

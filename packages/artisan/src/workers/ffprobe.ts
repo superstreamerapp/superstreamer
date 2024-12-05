@@ -34,8 +34,14 @@ export const ffprobeCallback: WorkerCallback<
       const stream = info.streams.find(
         (stream) => stream.codec_type === "audio",
       );
+
+      let language = info.format.tags?.["language"];
+      if (!language || typeof language === "number") {
+        language = undefined;
+      }
+
       result.audio[input.path] = {
-        language: info.format.tags?.["language"] as string,
+        language,
         channels: stream?.channels,
       };
     }

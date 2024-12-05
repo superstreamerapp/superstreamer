@@ -7,7 +7,6 @@ import {
   pipelineQueue,
   transcodeQueue,
 } from "bolt";
-import { AudioCodec, VideoCodec } from "bolt/types";
 import { Elysia, t } from "elysia";
 import { auth } from "../auth";
 import { DeliberateError } from "../errors";
@@ -43,14 +42,14 @@ const InputSchema = t.Union([
 const StreamSchema = t.Union([
   t.Object({
     type: t.Literal("video"),
-    codec: t.Enum(VideoCodec),
+    codec: t.Union([t.Literal("h264"), t.Literal("vp9"), t.Literal("hevc")]),
     height: t.Number(),
     bitrate: t.Optional(t.Number({ description: "Bitrate in bps" })),
     framerate: t.Optional(t.Number({ description: "Frames per second" })),
   }),
   t.Object({
     type: t.Literal("audio"),
-    codec: t.Enum(AudioCodec),
+    codec: t.Union([t.Literal("aac"), t.Literal("ac3"), t.Literal("eac3")]),
     bitrate: t.Optional(t.Number({ description: "Bitrate in bps" })),
     language: t.Optional(t.String()),
     channels: t.Optional(t.Number()),

@@ -252,7 +252,6 @@ exports[`getStaticDateRanges should create dateRanges for live 1`] = `
       "ASSET-LIST": "stitcher-endpoint/out/asset-list.json?dt=2021-05-02T10%3A12%3A05.250%2B00%3A00&sid=36bab417-0952-4c23-bdf0-9a424e4651ad",
       "CUE": "ONCE,PRE",
       "RESTRICT": "SKIP,JUMP",
-      "RESUME-OFFSET": 0,
       "SPRS-TYPES": "ad",
     },
     "id": "1619950325",

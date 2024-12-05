@@ -6,8 +6,8 @@ import {
   outcomeQueue,
   waitForChildren,
 } from "bolt";
+import { by639_2T } from "iso-language-codes";
 import { assert } from "shared/assert";
-import { getLangCode } from "shared/lang";
 import {
   getDefaultAudioBitrate,
   getDefaultVideoBitrate,
@@ -323,8 +323,8 @@ export function mergeInput(
     const info = probeResult.audio[partial.path];
     assert(info);
 
-    const language = partial.language ?? getLangCode(info.language);
-    assert(language, defaultReason("audio", "language"));
+    // Get the language code, if not found, we fallback to undecided.
+    const language = partial.language ?? getLangCode(info.language) ?? "und";
 
     // Assume when no channel metadata is found, we'll fallback to 2.
     const channels = partial.channels ?? info.channels ?? 2;
@@ -352,4 +352,11 @@ function defaultReason<T extends Stream["type"]>(
     `Could not extract a default value for "${type}" "${prop.toString()}", ` +
     "You will have to provide it in the stream instead."
   );
+}
+
+function getLangCode(value?: string) {
+  if (value && value in by639_2T) {
+    return value;
+  }
+  return null;
 }

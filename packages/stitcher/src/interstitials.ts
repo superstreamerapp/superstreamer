@@ -42,12 +42,11 @@ export function getStaticDateRanges(session: Session, isLive: boolean) {
       CUE: "ONCE",
     };
 
-    const isPreroll = item.dateTime.equals(session.startTime);
-
-    if (!isLive || isPreroll) {
+    if (!isLive) {
       clientAttributes["RESUME-OFFSET"] = 0;
     }
 
+    const isPreroll = item.dateTime.equals(session.startTime);
     if (isPreroll) {
       clientAttributes["CUE"] += ",PRE";
     }

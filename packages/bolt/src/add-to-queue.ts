@@ -1,11 +1,5 @@
 import { randomUUID } from "crypto";
-import { FlowProducer } from "bullmq";
-import { connection } from "./env";
 import type { Job, JobsOptions, Queue } from "bullmq";
-
-export const flowProducer = new FlowProducer({
-  connection,
-});
 
 export const DEFAULT_SEGMENT_SIZE = 2.24;
 

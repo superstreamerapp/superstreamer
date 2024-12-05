@@ -88,7 +88,7 @@ async function handleStepInitial(job: Job<PackageData>, dir: WorkerDir) {
     }
 
     if (stream.type === "audio") {
-      packagerParams.push([
+      const params = [
         `in=${inDir}/${key}`,
         "stream=audio",
         `init_segment=${file.name}/init.mp4`,
@@ -96,8 +96,15 @@ async function handleStepInitial(job: Job<PackageData>, dir: WorkerDir) {
         `playlist_name=${file.name}/playlist.m3u8`,
         `hls_group_id=${getGroupId(stream)}`,
         `hls_name=${getName(stream)}`,
-        `language=${stream.language}`,
-      ]);
+      ];
+
+      if (stream.language !== "und") {
+        // TODO: We should use getLangCode here to figure out if we can pass a valid
+        // iso str, and leave it as-is when it is null.
+        params.push(`language=${stream.language}`);
+      }
+
+      packagerParams.push(params);
     }
 
     if (stream.type === "text") {

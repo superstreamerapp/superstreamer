@@ -1,14 +1,9 @@
 import { mock } from "bun:test";
 
-// We're going to mock bolt entirely as we do not want job runners
-// to actually do work during tests.
-mock.module("bolt", () => ({
-  getChildren: () => [],
-  waitForChildren: () => Promise.resolve(),
-  outcomeQueue: undefined,
-  ffmpegQueue: undefined,
-  ffprobeQueue: undefined,
-  addToQueue: undefined,
+mock.module("bullmq", () => ({
+  Queue: class {},
+  Worker: class {},
+  WaitingChildrenError: class {},
 }));
 
 process.env = {
