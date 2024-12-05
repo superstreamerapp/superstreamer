@@ -35,5 +35,8 @@ vite.config.ts.timestamp*
 
 config.env*
 !config.env.example
+!config.env.example.dev
 
 .wrangler
+
+docker/volume

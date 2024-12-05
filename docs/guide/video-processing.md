@@ -36,14 +36,14 @@ curl -X POST
 
 ```json [Request]
 {
-  "input": [
+  "inputs": [
     {
       "type": "video",
-      "url": "https://domain.com/video.mp4"
+      "path": "https://domain.com/video.mp4"
     },
     {
       "type": "audio",
-      "url": "https://domain.com/video.mp4",
+      "path": "https://domain.com/video.mp4",
       "language": "eng"
     }
   ],
@@ -130,14 +130,14 @@ curl -X POST
 
 ```json [Request]
 {
-  "input": [
+  "inputs": [
     {
       "type": "video",
-      "url": "https://domain.com/video.mp4"
+      "path": "https://domain.com/video.mp4"
     },
     {
       "type": "audio",
-      "url": "https://domain.com/video.mp4",
+      "path": "https://domain.com/video.mp4",
       "language": "eng"
     }
   ],
@@ -160,6 +160,5 @@ curl -X POST
   ]
 }
 ```
-
 
 The pipeline job generates a unique UUID, and once complete, your asset is instantly available as an HLS playlist — just as if you had packaged it manually.
