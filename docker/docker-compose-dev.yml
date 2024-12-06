@@ -25,7 +25,7 @@ services:
     environment:
       - POSTGRES_INITDB_ARGS=--data-checksums
       - POSTGRES_DB=sprs
-      - POSTGRES_PASSWORD=superstreamer
+      - POSTGRES_PASSWORD=sprs
 
   localstack:
     image: gresau/localstack-persist:4 # instead of localstack/localstack:4
