@@ -1,8 +1,8 @@
 {
   "name": "superstreamer",
   "scripts": {
-    "dev": "bun run --filter=\"@superstreamer/*\" dev",
-    "build": "bun run ./scripts/build.ts",
+    "dev": "NODE_ENV=development bun run --filter=\"@superstreamer/*\" dev",
+    "build": "NODE_ENV=production bun run ./scripts/build.ts",
     "lint": "bun run ./scripts/lint.ts",
     "test": "bun run ./scripts/test.ts",
     "install-bin": "bun run --filter=\"@superstreamer/*\" install-bin"

@@ -233,4 +233,23 @@ We've already covered how to build Superstreamer locally, and we've also made it
 $ bun run dev
 ```
 
+### Quick Development Environment Setup
+
+We have also created a `docker-compose-dev.yml` so you can setup your development environment faster and start getting hands on!
+
+```shell
+# We have prebuilt developmnet containers, see docker/docker-compose-dev.yml
+cd docker
+docker-compose -f docker-compose-dev.yml up
+
+# Install dependencies
+bun install
+
+# Install binary dependencies, such as ffmpeg
+bun run install-bin
+
+# RUN!
+bun run dev
+```
+
 :::
