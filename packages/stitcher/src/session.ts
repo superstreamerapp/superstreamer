@@ -24,6 +24,7 @@ export async function createSession(params: {
   };
   interstitials?: {
     time: string | number;
+    assetListUrl?: string;
     vastUrl?: string;
     uri?: string;
     type?: InterstitialAssetType;
@@ -64,6 +65,13 @@ export async function createSession(params: {
         session.interstitials.push({
           dateTime,
           vastUrl: interstitial.vastUrl,
+        });
+      }
+
+      if (interstitial.assetListUrl) {
+        session.interstitials.push({
+          dateTime,
+          assetListUrl: interstitial.assetListUrl,
         });
       }
     });

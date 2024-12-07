@@ -39,6 +39,7 @@ export const sessionRoutes = new Elysia()
           t.Array(
             t.Object({
               time: t.Union([t.Number(), t.String()]),
+              assetListUrl: t.Optional(t.String()),
               vastUrl: t.Optional(t.String()),
               uri: t.Optional(t.String()),
               type: t.Optional(t.Union([t.Literal("ad"), t.Literal("bumper")])),

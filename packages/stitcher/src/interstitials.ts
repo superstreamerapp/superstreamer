@@ -12,6 +12,10 @@ export function getStaticDateRanges(session: Session, isLive: boolean) {
   }[] = [];
 
   for (const interstitial of session.interstitials) {
+    if (interstitial.assetListUrl) {
+      continue;
+    }
+
     let item = group.find((item) =>
       item.dateTime.equals(interstitial.dateTime),
     );
@@ -30,7 +34,7 @@ export function getStaticDateRanges(session: Session, isLive: boolean) {
     }
   }
 
-  return group.map((item) => {
+  const dateRanges = group.map((item) => {
     const assetListUrl = createAssetListUrl({
       dateTime: item.dateTime,
       session,
@@ -62,6 +66,27 @@ export function getStaticDateRanges(session: Session, isLive: boolean) {
       clientAttributes,
     };
   });
+
+  for (const interstitial of session.interstitials) {
+    if (!interstitial.assetListUrl) {
+      continue;
+    }
+
+    const clientAttributes: Record<string, number | string> = {
+      RESTRICT: "SKIP,JUMP",
+      "ASSET-LIST": interstitial.assetListUrl,
+      CUE: "ONCE",
+    };
+
+    dateRanges.push({
+      classId: "com.apple.hls.interstitial",
+      id: `${interstitial.dateTime.toUnixInteger()}`,
+      startDate: interstitial.dateTime,
+      clientAttributes,
+    });
+  }
+
+  return dateRanges;
 }
 
 export async function getAssets(session: Session, dateTime: DateTime) {

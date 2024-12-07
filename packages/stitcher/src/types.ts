@@ -12,4 +12,5 @@ export interface Interstitial {
   vastUrl?: string;
   vastData?: string;
   asset?: InterstitialAsset;
+  assetListUrl?: string;
 }
