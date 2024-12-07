@@ -239,7 +239,7 @@ $ bun run dev
 We have also created a `docker-compose-dev.yml` so you can setup your development environment faster and start getting hands on!
 
 ```shell
-# We have prebuilt developmnet containers, see docker/docker-compose-dev.yml
+# We have prebuilt development containers, see docker/docker-compose-dev.yml
 cd docker
 docker-compose -f docker-compose-dev.yml up
 ```
