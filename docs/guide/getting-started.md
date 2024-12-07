@@ -244,7 +244,7 @@ cd docker
 docker-compose -f docker-compose-dev.yml up
 ```
 
-You can use this `config.env.development` for a quick setup:
+You can create a file named `config.env.development` for a quick setup. Here is a sample that should work out of the box if default configuration is used:
 
 ```shell
 S3_ENDPOINT=http://s3.localhost.localstack.cloud:4566/
