@@ -24,7 +24,7 @@ function RouteComponent() {
   return (
     <div className="h-screen p-8 flex gap-4">
       <div className="grow">
-        <Player url={url} lang="eng" metadata={{}} />
+        <Player url={url} />
         <Card className="mt-4 p-4">
           <Form
             ref={formRef}

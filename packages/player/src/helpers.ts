@@ -1,6 +1,34 @@
+export function preciseFloat(value: number) {
+  return Math.round((value + Number.EPSILON) * 100) / 100;
+}
+
+export function getLangCode(key?: string) {
+  const value = key ? langCodes[key]?.split(",")[0] : null;
+  if (!value) {
+    return "Unknown";
+  }
+  return `${value[0].toUpperCase()}${value.slice(1)}`;
+}
+
+interface CustomListAsset {
+  type?: "ad" | "bumper";
+}
+
+export function formatListAsset(
+  values?: Record<string, string>,
+): CustomListAsset {
+  const data: CustomListAsset = {};
+  if (values) {
+    if ("SPRS-TYPE" in values) {
+      data.type = values["SPRS-TYPE"] as unknown as CustomListAsset["type"];
+    }
+  }
+  return data;
+}
+
 // Inspired by iso-language-codes.
 // See https://github.com/pubcore/iso-language-codes/blob/master/src/data.ts
-export const langMap: Record<string, string> = {
+const langCodes: Record<string, string> = {
   sr: "српски језик",
   ro: "Română",
   ii: "ꆈꌠ꒿ Nuosuhxop",
@@ -35,8 +63,8 @@ export const langMap: Record<string, string> = {
   qu: "Runa Simi, Kichwa",
   sc: "sardu",
   sw: "Kiswahili",
-  uz: "Oʻzbek, Ўзбек, ",
-  za: "Saɯ cueŋƅ, Saw cuengh",
+  uz: "O'zbek, Ўзбек, ",
+  za: "Saw cueŋƅ, Saw cuengh",
   bi: "Bislama",
   nb: "Norsk Bokmål",
   nn: "Norsk Nynorsk",
