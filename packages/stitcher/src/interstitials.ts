@@ -2,13 +2,11 @@ import { createUrl } from "./lib/url";
 import { fetchDuration } from "./playlist";
 import { getAdMediasFromVast } from "./vast";
 import type { Session } from "./session";
-import type { Interstitial, InterstitialAssetType } from "./types";
 import type { DateTime } from "luxon";
 
 export function getStaticDateRanges(session: Session, isLive: boolean) {
   const group: {
     dateTime: DateTime;
-    types: InterstitialAssetType[];
   }[] = [];
 
   for (const interstitial of session.interstitials) {
@@ -19,14 +17,8 @@ export function getStaticDateRanges(session: Session, isLive: boolean) {
     if (!item) {
       item = {
         dateTime: interstitial.dateTime,
-        types: [],
       };
       group.push(item);
-    }
-
-    const type = getInterstitialType(interstitial);
-    if (type && !item.types.includes(type)) {
-      item.types.push(type);
     }
   }
 
@@ -51,10 +43,6 @@ export function getStaticDateRanges(session: Session, isLive: boolean) {
       clientAttributes["CUE"] += ",PRE";
     }
 
-    if (item.types.length) {
-      clientAttributes["SPRS-TYPES"] = item.types.join(",");
-    }
-
     return {
       classId: "com.apple.hls.interstitial",
       id: `${item.dateTime.toUnixInteger()}`,
@@ -68,7 +56,6 @@ export async function getAssets(session: Session, dateTime: DateTime) {
   const assets: {
     URI: string;
     DURATION: number;
-    "SPRS-TYPE"?: InterstitialAssetType;
   }[] = [];
 
   const interstitials = session.interstitials.filter((interstitial) =>
@@ -76,20 +63,20 @@ export async function getAssets(session: Session, dateTime: DateTime) {
   );
 
   for (const interstitial of interstitials) {
-    const adMedias = await getAdMediasFromVast(interstitial);
-    for (const adMedia of adMedias) {
-      assets.push({
-        URI: adMedia.masterUrl,
-        DURATION: adMedia.duration,
-        "SPRS-TYPE": "ad",
-      });
+    if (interstitial.type === "vast") {
+      const adMedias = await getAdMediasFromVast(interstitial);
+      for (const adMedia of adMedias) {
+        assets.push({
+          URI: adMedia.masterUrl,
+          DURATION: adMedia.duration,
+        });
+      }
     }
 
-    if (interstitial.asset) {
+    if (interstitial.type === "asset") {
       assets.push({
-        URI: interstitial.asset.url,
-        DURATION: await fetchDuration(interstitial.asset.url),
-        "SPRS-TYPE": interstitial.asset.type,
+        URI: interstitial.url,
+        DURATION: await fetchDuration(interstitial.url),
       });
     }
   }
@@ -102,13 +89,4 @@ function createAssetListUrl(params: { dateTime: DateTime; session?: Session }) {
     dt: params.dateTime.toISO(),
     sid: params.session?.id,
   });
-}
-
-function getInterstitialType(
-  interstitial: Interstitial,
-): InterstitialAssetType | undefined {
-  if (interstitial.vastData || interstitial.vastUrl) {
-    return "ad";
-  }
-  return interstitial.asset?.type;
 }

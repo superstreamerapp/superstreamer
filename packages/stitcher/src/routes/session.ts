@@ -37,12 +37,25 @@ export const sessionRoutes = new Elysia()
         }),
         interstitials: t.Optional(
           t.Array(
-            t.Object({
-              time: t.Union([t.Number(), t.String()]),
-              vastUrl: t.Optional(t.String()),
-              uri: t.Optional(t.String()),
-              type: t.Optional(t.Union([t.Literal("ad"), t.Literal("bumper")])),
-            }),
+            t.Intersect([
+              t.Object({
+                time: t.Union([t.Number(), t.String()]),
+              }),
+              t.Union([
+                t.Object({
+                  type: t.Literal("asset"),
+                  uri: t.String(),
+                }),
+                t.Object({
+                  type: t.Literal("vast"),
+                  url: t.String(),
+                }),
+                t.Object({
+                  type: t.Literal("assetList"),
+                  url: t.String(),
+                }),
+              ]),
+            ]),
             {
               description: "Manual HLS interstitial insertion.",
             },

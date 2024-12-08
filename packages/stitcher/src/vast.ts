@@ -13,19 +13,19 @@ export interface AdMedia {
 }
 
 export async function getAdMediasFromVast(params: {
-  vastUrl?: string;
-  vastData?: string;
+  url?: string;
+  data?: string;
 }) {
   const vastClient = new VASTClient();
   let vastResponse: VastResponse | undefined;
 
-  if (params.vastUrl) {
-    vastResponse = await vastClient.get(params.vastUrl);
+  if (params.url) {
+    vastResponse = await vastClient.get(params.url);
   }
 
-  if (params.vastData) {
+  if (params.data) {
     const parser = new DOMParser();
-    const xml = parser.parseFromString(params.vastData, "text/xml");
+    const xml = parser.parseFromString(params.data, "text/xml");
     vastResponse = await vastClient.parseVAST(xml);
   }
 

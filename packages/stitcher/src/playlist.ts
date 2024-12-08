@@ -205,18 +205,11 @@ export function mapAdBreaksToSessionInterstitials(
 
     const dateTime = session.startTime.plus({ seconds: timeOffset });
 
-    if (adBreak.vastUrl) {
-      session.interstitials.push({
-        dateTime,
-        vastUrl: adBreak.vastUrl,
-      });
-    }
-
-    if (adBreak.vastData) {
-      session.interstitials.push({
-        dateTime,
-        vastData: adBreak.vastData,
-      });
-    }
+    session.interstitials.push({
+      dateTime,
+      type: "vast",
+      url: adBreak.vastUrl,
+      data: adBreak.vastData,
+    });
   }
 }

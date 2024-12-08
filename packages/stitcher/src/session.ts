@@ -3,7 +3,7 @@ import { DateTime } from "luxon";
 import { kv } from "./adapters/kv";
 import { JSON } from "./lib/json";
 import { resolveUri } from "./lib/url";
-import type { Interstitial, InterstitialAssetType } from "./types";
+import type { Interstitial } from "./types";
 import type { VmapParams } from "./vmap";
 
 export interface Session {
@@ -19,15 +19,23 @@ export interface Session {
 
 export async function createSession(params: {
   uri: string;
-  vmap?: {
-    url: string;
-  };
-  interstitials?: {
-    time: string | number;
-    vastUrl?: string;
-    uri?: string;
-    type?: InterstitialAssetType;
-  }[];
+  vmap?: VmapParams;
+  interstitials?: ({
+    time: number | string;
+  } & (
+    | {
+        type: "asset";
+        uri: string;
+      }
+    | {
+        type: "vast";
+        url: string;
+      }
+    | {
+        type: "assetList";
+        url: string;
+      }
+  ))[];
   expiry?: number;
 }) {
   const id = randomUUID();
@@ -44,28 +52,26 @@ export async function createSession(params: {
   };
 
   if (params.interstitials) {
-    params.interstitials.forEach((interstitial) => {
+    session.interstitials = params.interstitials.map<Interstitial>((item) => {
+      const { time, ...rest } = item;
       const dateTime =
-        typeof interstitial.time === "string"
-          ? DateTime.fromISO(interstitial.time)
-          : startTime.plus({ seconds: interstitial.time });
+        typeof time === "string"
+          ? DateTime.fromISO(time)
+          : startTime.plus({ seconds: time });
 
-      if (interstitial.uri) {
-        session.interstitials.push({
-          dateTime,
-          asset: {
-            url: resolveUri(interstitial.uri),
-            type: interstitial.type,
-          },
-        });
+      // TODO: Below is heavily untyped. Find an explicit way to map input to an |Interstitial|.
+      let params;
+      if (rest.type === "asset") {
+        const { uri, ...assetRest } = rest;
+        params = { url: resolveUri(uri), ...assetRest };
+      } else {
+        params = rest;
       }
 
-      if (interstitial.vastUrl) {
-        session.interstitials.push({
-          dateTime,
-          vastUrl: interstitial.vastUrl,
-        });
-      }
+      return {
+        dateTime,
+        ...params,
+      };
     });
   }
 
