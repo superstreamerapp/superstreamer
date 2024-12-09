@@ -3,29 +3,22 @@ import * as uuid from "uuid";
 import { VASTClient } from "vast-client";
 import { api } from "./lib/api-client";
 import { resolveUri } from "./lib/url";
+import type { InterstitialAsset, InterstitialVast } from "./types";
 import type { VastAd, VastCreativeLinear, VastResponse } from "vast-client";
 
 const NAMESPACE_UUID_AD = "5b212a7e-d6a2-43bf-bd30-13b1ca1f9b13";
 
-export interface AdMedia {
-  masterUrl: string;
-  duration: number;
-}
-
-export async function getAdMediasFromVast(params: {
-  vastUrl?: string;
-  vastData?: string;
-}) {
+export async function getAssetsFromVast(vast: InterstitialVast) {
   const vastClient = new VASTClient();
   let vastResponse: VastResponse | undefined;
 
-  if (params.vastUrl) {
-    vastResponse = await vastClient.get(params.vastUrl);
+  if (vast.url) {
+    vastResponse = await vastClient.get(vast.url);
   }
 
-  if (params.vastData) {
+  if (vast.data) {
     const parser = new DOMParser();
-    const xml = parser.parseFromString(params.vastData, "text/xml");
+    const xml = parser.parseFromString(vast.data, "text/xml");
     vastResponse = await vastClient.parseVAST(xml);
   }
 
@@ -33,7 +26,7 @@ export async function getAdMediasFromVast(params: {
     return [];
   }
 
-  return await getAdMediasFromVastResponse(vastResponse);
+  return await mapVastResponseToAssets(vastResponse);
 }
 
 async function scheduleForPackage(assetId: string, url: string) {
@@ -91,7 +84,7 @@ async function fetchAsset(id: string) {
   throw new Error(`Failed to fetch asset, got status ${status}`);
 }
 
-async function mapAdMedia(ad: VastAd): Promise<AdMedia | null> {
+async function mapAdToAsset(ad: VastAd): Promise<InterstitialAsset | null> {
   const creative = getCreative(ad);
   if (!creative) {
     return null;
@@ -99,13 +92,13 @@ async function mapAdMedia(ad: VastAd): Promise<AdMedia | null> {
 
   const id = getAdId(creative);
 
-  let masterUrl = getCreativeStreamingUrl(creative);
+  let url = getCreativeStreamingUrl(creative);
 
-  if (!masterUrl) {
+  if (!url) {
     const asset = await fetchAsset(id);
 
     if (asset) {
-      masterUrl = resolveUri(`asset://${id}`);
+      url = resolveUri(`asset://${id}`);
     } else {
       const fileUrl = getCreativeStaticUrl(creative);
       if (fileUrl) {
@@ -114,28 +107,29 @@ async function mapAdMedia(ad: VastAd): Promise<AdMedia | null> {
     }
   }
 
-  if (!masterUrl) {
+  if (!url) {
     return null;
   }
 
   return {
-    masterUrl,
+    url: url,
     duration: creative.duration,
+    kind: "ad",
   };
 }
 
-async function getAdMediasFromVastResponse(response: VastResponse) {
-  const adMedias: AdMedia[] = [];
+async function mapVastResponseToAssets(response: VastResponse) {
+  const assets: InterstitialAsset[] = [];
 
   for (const ad of response.ads) {
-    const adMedia = await mapAdMedia(ad);
-    if (!adMedia) {
+    const asset = await mapAdToAsset(ad);
+    if (!asset) {
       continue;
     }
-    adMedias.push(adMedia);
+    assets.push(asset);
   }
 
-  return adMedias;
+  return assets;
 }
 
 function getCreativeStaticUrl(creative: VastCreativeLinear) {

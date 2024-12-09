@@ -1,9 +1,10 @@
 import { randomUUID } from "crypto";
 import { DateTime } from "luxon";
 import { kv } from "./adapters/kv";
+import { appendInterstitials } from "./interstitials";
 import { JSON } from "./lib/json";
 import { resolveUri } from "./lib/url";
-import type { Interstitial, InterstitialAssetType } from "./types";
+import type { Interstitial } from "./types";
 import type { VmapParams } from "./vmap";
 
 export interface Session {
@@ -17,17 +18,24 @@ export interface Session {
   interstitials: Interstitial[];
 }
 
-export async function createSession(params: {
-  uri: string;
-  vmap?: {
+interface SessionInterstitial {
+  time: number | string;
+  assets?: {
+    uri: string;
+    kind?: "ad" | "bumper";
+  }[];
+  vast?: {
     url: string;
   };
-  interstitials?: {
-    time: string | number;
-    vastUrl?: string;
-    uri?: string;
-    type?: InterstitialAssetType;
-  }[];
+  assetList?: {
+    url: string;
+  };
+}
+
+export async function createSession(params: {
+  uri: string;
+  vmap?: VmapParams;
+  interstitials?: SessionInterstitial[];
   expiry?: number;
 }) {
   const id = randomUUID();
@@ -44,29 +52,11 @@ export async function createSession(params: {
   };
 
   if (params.interstitials) {
-    params.interstitials.forEach((interstitial) => {
-      const dateTime =
-        typeof interstitial.time === "string"
-          ? DateTime.fromISO(interstitial.time)
-          : startTime.plus({ seconds: interstitial.time });
-
-      if (interstitial.uri) {
-        session.interstitials.push({
-          dateTime,
-          asset: {
-            url: resolveUri(interstitial.uri),
-            type: interstitial.type,
-          },
-        });
-      }
-
-      if (interstitial.vastUrl) {
-        session.interstitials.push({
-          dateTime,
-          vastUrl: interstitial.vastUrl,
-        });
-      }
-    });
+    const interstitials = mapSessionInterstitials(
+      startTime,
+      params.interstitials,
+    );
+    appendInterstitials(session.interstitials, interstitials);
   }
 
   // We'll initially store the session for 10 minutes, if it's not been consumed
@@ -88,4 +78,26 @@ export async function getSession(id: string) {
 export async function updateSession(session: Session) {
   const value = JSON.stringify(session);
   await kv.set(`session:${session.id}`, value, session.expiry);
+}
+
+function mapSessionInterstitials(
+  startTime: DateTime,
+  interstitials: SessionInterstitial[],
+) {
+  return interstitials.map<Interstitial>((item) => {
+    const { time, assets, ...rest } = item;
+    const dateTime =
+      typeof time === "string"
+        ? DateTime.fromISO(time)
+        : startTime.plus({ seconds: time });
+
+    return {
+      dateTime,
+      assets: assets?.map((asset) => {
+        const { uri, ...rest } = asset;
+        return { url: resolveUri(uri), ...rest };
+      }),
+      ...rest,
+    };
+  });
 }

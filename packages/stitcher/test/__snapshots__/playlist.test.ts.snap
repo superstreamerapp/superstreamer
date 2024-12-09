@@ -132,7 +132,10 @@ exports[`mapAdBreaksToSessionInterstitials should handle time based with vastUrl
       "ts": 1619950325250,
       "weekData": null,
     },
-    "vastUrl": "http://mock.com/vast_1.xml",
+    "vast": {
+      "data": undefined,
+      "url": "http://mock.com/vast_1.xml",
+    },
   },
   {
     "dateTime": DateTime {
@@ -172,7 +175,10 @@ exports[`mapAdBreaksToSessionInterstitials should handle time based with vastUrl
       "ts": 1619950340250,
       "weekData": null,
     },
-    "vastUrl": "http://mock.com/vast_2.xml",
+    "vast": {
+      "data": undefined,
+      "url": "http://mock.com/vast_2.xml",
+    },
   },
   {
     "dateTime": DateTime {
@@ -212,7 +218,10 @@ exports[`mapAdBreaksToSessionInterstitials should handle time based with vastUrl
       "ts": 1619950350250,
       "weekData": null,
     },
-    "vastUrl": "http://mock.com/vast_3.xml",
+    "vast": {
+      "data": undefined,
+      "url": "http://mock.com/vast_3.xml",
+    },
   },
 ]
 `;
@@ -257,7 +266,10 @@ exports[`mapAdBreaksToSessionInterstitials should handle vastData 1`] = `
       "ts": 1619950335250,
       "weekData": null,
     },
-    "vastData": "<CDATA>mocked VAST data</CDATA>",
+    "vast": {
+      "data": "<CDATA>mocked VAST data</CDATA>",
+      "url": undefined,
+    },
   },
 ]
 `;
