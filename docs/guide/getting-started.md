@@ -234,19 +234,27 @@ We've already covered how to build Superstreamer locally, and we've also made it
 $ bun run dev
 ```
 
+:::
+
 ### Quick Development Environment Setup
 
 We have also created a `docker-compose-dev.yml` so you can setup your development environment faster and start getting hands on!
 
-```shell
+::: code-group
+
+```sh [Terminal]
 # We have prebuilt development containers, see docker/docker-compose-dev.yml
 cd docker
 docker-compose -f docker-compose-dev.yml up
 ```
 
+:::
+
 You can create a file named `config.env.development` for a quick setup. Here is a sample that should work out of the box if default configuration is used:
 
-```shell
+::: code-group
+
+```sh [config.env.development]
 S3_ENDPOINT=http://s3.localhost.localstack.cloud:4566/
 S3_REGION=us-east-1
 S3_ACCESS_KEY=test
@@ -272,9 +280,13 @@ SUPER_SECRET=abc
 DATABASE_URI=postgresql://postgres:sprs@localhost:5432/sprs
 ```
 
+:::
+
 Run it with:
 
-```shell
+::: code-group
+
+```sh [Terminal]
 # Install dependencies
 bun install
 
