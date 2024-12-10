@@ -23,9 +23,36 @@ function RouteComponent() {
 
   return (
     <div className="h-screen p-8 flex gap-4">
-      <div className="grow">
-        <Player url={url} lang="eng" metadata={{}} />
-        <Card className="mt-4 p-4">
+      <div className="flex flex-col w-full max-w-md gap-4">
+        <Card className="py-4 grow">
+          <CodeEditor
+            schema={schema}
+            localStorageKey="stitcherEditor"
+            onSave={async (body) => {
+              setError(null);
+
+              const response = await fetch(
+                `${window.__ENV__.PUBLIC_STITCHER_ENDPOINT}/session`,
+                {
+                  method: "post",
+                  headers: {
+                    "Content-Type": "application/json",
+                  },
+                  body,
+                },
+              );
+
+              const data = await response.json();
+              if (response.ok) {
+                formRef.current?.setValue("url", data.url);
+                setUrl(data.url);
+              } else {
+                setError(data);
+              }
+            }}
+          />
+        </Card>
+        <Card className="p-4">
           <Form
             ref={formRef}
             submit="Play"
@@ -42,34 +69,9 @@ function RouteComponent() {
           />
         </Card>
       </div>
-      <Card className="py-4 px-0 grow max-w-md">
-        <CodeEditor
-          schema={schema}
-          localStorageKey="stitcherEditor"
-          onSave={async (body) => {
-            setError(null);
-
-            const response = await fetch(
-              `${window.__ENV__.PUBLIC_STITCHER_ENDPOINT}/session`,
-              {
-                method: "post",
-                headers: {
-                  "Content-Type": "application/json",
-                },
-                body,
-              },
-            );
-
-            const data = await response.json();
-            if (response.ok) {
-              formRef.current?.setValue("url", data.url);
-              setUrl(data.url);
-            } else {
-              setError(data);
-            }
-          }}
-        />
-      </Card>
+      <div className="grow">
+        <Player url={url} />
+      </div>
       <Modal
         isOpen={error !== null}
         onClose={() => setError(null)}

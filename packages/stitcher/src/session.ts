@@ -59,10 +59,8 @@ export async function createSession(params: {
     appendInterstitials(session.interstitials, interstitials);
   }
 
-  // We'll initially store the session for 10 minutes, if it's not been consumed
-  // within the timeframe, it's gone.
   const value = JSON.stringify(session);
-  await kv.set(`session:${id}`, value, 60 * 10);
+  await kv.set(`session:${id}`, value, session.expiry);
 
   return session;
 }
