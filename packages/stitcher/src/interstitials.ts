@@ -16,6 +16,7 @@ export function getStaticDateRanges(session: Session, isLive: boolean) {
       "CONTENT-MAY-VARY": "YES",
       "TIMELINE-OCCUPIES": "POINT",
       "TIMELINE-STYLE": getTimelineStyle(interstitial),
+      "PLAYOUT-LIMIT": interstitial.duration,
     };
 
     if (!isLive) {

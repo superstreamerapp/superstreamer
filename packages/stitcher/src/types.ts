@@ -17,6 +17,7 @@ export interface InterstitialAssetList {
 
 export interface Interstitial {
   dateTime: DateTime;
+  duration?: number;
   assets?: InterstitialAsset[];
   vast?: InterstitialVast;
   assetList?: InterstitialAssetList;

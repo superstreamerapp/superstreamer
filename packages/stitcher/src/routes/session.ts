@@ -39,6 +39,7 @@ export const sessionRoutes = new Elysia()
           t.Array(
             t.Object({
               time: t.Union([t.Number(), t.String()]),
+              duration: t.Optional(t.Number()),
               assets: t.Optional(
                 t.Array(
                   t.Object({
