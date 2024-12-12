@@ -1,10 +1,10 @@
 import { describe, expect, test } from "bun:test";
 import {
-  mockMaster,
-  mockMediaWithAbsSeg,
-  mockMediaWithRelSeg,
-  mockSession,
-} from "./mock";
+  fakeMasterPlaylist,
+  fakeMediaPlaylistWithAbsSeg,
+  fakeMediaPlaylistWithRelSeg,
+  fakeSession,
+} from "./test-data";
 import {
   createMasterUrl,
   mapAdBreaksToSessionInterstitials,
@@ -14,7 +14,7 @@ import {
 
 describe("rewriteMasterPlaylistUrls", () => {
   test("should rewrite", () => {
-    const master = mockMaster();
+    const master = fakeMasterPlaylist();
 
     rewriteMasterPlaylistUrls(master, {
       origUrl: "http://mock.com/master.m3u8",
@@ -24,8 +24,8 @@ describe("rewriteMasterPlaylistUrls", () => {
   });
 
   test("should include session id", () => {
-    const master = mockMaster();
-    const session = mockSession();
+    const master = fakeMasterPlaylist();
+    const session = fakeSession();
 
     rewriteMasterPlaylistUrls(master, {
       origUrl: "http://mock.com/master.m3u8",
@@ -38,7 +38,7 @@ describe("rewriteMasterPlaylistUrls", () => {
 
 describe("rewriteMediaPlaylistUrls", () => {
   test("should rewrite relative segments", () => {
-    const media = mockMediaWithRelSeg();
+    const media = fakeMediaPlaylistWithRelSeg();
 
     rewriteMediaPlaylistUrls(media, "https://mock.com/video_1.m3u8");
 
@@ -46,7 +46,7 @@ describe("rewriteMediaPlaylistUrls", () => {
   });
 
   test("should rewrite absolute segments", () => {
-    const media = mockMediaWithAbsSeg();
+    const media = fakeMediaPlaylistWithAbsSeg();
 
     rewriteMediaPlaylistUrls(media, "https://mock.com/video_2.m3u8");
 
@@ -56,9 +56,9 @@ describe("rewriteMediaPlaylistUrls", () => {
 
 describe("mapAdBreaksToSessionInterstitials", () => {
   test("should handle time based with vastUrl", () => {
-    const session = mockSession();
+    const session = fakeSession();
 
-    mapAdBreaksToSessionInterstitials(session, [
+    const interstitials = mapAdBreaksToSessionInterstitials(session, [
       {
         timeOffset: "start",
         vastUrl: "http://mock.com/vast_1.xml",
@@ -73,20 +73,20 @@ describe("mapAdBreaksToSessionInterstitials", () => {
       },
     ]);
 
-    expect(session.interstitials).toMatchSnapshot();
+    expect(interstitials).toMatchSnapshot();
   });
 
   test("should handle vastData", () => {
-    const session = mockSession();
+    const session = fakeSession();
 
-    mapAdBreaksToSessionInterstitials(session, [
+    const interstitials = mapAdBreaksToSessionInterstitials(session, [
       {
         timeOffset: "00:00:10.000",
         vastData: "<CDATA>mocked VAST data</CDATA>",
       },
     ]);
 
-    expect(session.interstitials).toMatchSnapshot();
+    expect(interstitials).toMatchSnapshot();
   });
 });
 
@@ -105,7 +105,7 @@ describe("createMasterUrl", () => {
   });
 
   test("should create with session", () => {
-    const session = mockSession();
+    const session = fakeSession();
 
     const result = createMasterUrl({
       url: "https://mock.com/master.m3u8",

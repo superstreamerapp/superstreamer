@@ -15,6 +15,12 @@ mock.module("redis", () => ({
   },
 }));
 
+mock.module("vast-client", () => ({
+  VASTClient: class {
+    get = mock();
+  },
+}));
+
 // The day my son was born!
 setSystemTime(new Date(2021, 4, 2, 10, 12, 5, 250));
 

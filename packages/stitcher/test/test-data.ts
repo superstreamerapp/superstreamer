@@ -2,7 +2,7 @@ import { DateTime } from "luxon";
 import type { MasterPlaylist, MediaPlaylist } from "../src/parser";
 import type { Session } from "../src/session";
 
-export function mockMaster(): MasterPlaylist {
+export function fakeMasterPlaylist(): MasterPlaylist {
   return {
     variants: [
       {
@@ -29,7 +29,7 @@ export function mockMaster(): MasterPlaylist {
   };
 }
 
-export function mockMediaWithRelSeg(): MediaPlaylist {
+export function fakeMediaPlaylistWithRelSeg(): MediaPlaylist {
   return {
     targetDuration: 2,
     endlist: true,
@@ -50,7 +50,7 @@ export function mockMediaWithRelSeg(): MediaPlaylist {
   };
 }
 
-export function mockMediaWithAbsSeg(): MediaPlaylist {
+export function fakeMediaPlaylistWithAbsSeg(): MediaPlaylist {
   return {
     targetDuration: 2,
     endlist: true,
@@ -67,7 +67,7 @@ export function mockMediaWithAbsSeg(): MediaPlaylist {
   };
 }
 
-export function mockSession(): Session {
+export function fakeSession(): Session {
   return {
     id: "36bab417-0952-4c23-bdf0-9a424e4651ad",
     url: "http://mock.com/master.m3u8",
@@ -77,50 +77,56 @@ export function mockSession(): Session {
   };
 }
 
-export function mockSessionWithInterstitials(): Session {
-  const session = mockSession();
-
-  const startDate = DateTime.now();
-
+export function addFakeInterstitials(session: Session) {
   session.interstitials = [
     {
-      dateTime: startDate,
-      vastUrl: "https://mock.com/vast.xml",
+      dateTime: session.startTime,
+      vast: {
+        url: "https://mock.com/vast.xml",
+      },
     },
     {
-      dateTime: startDate.plus({ seconds: 10 }),
-      vastUrl: "<CDATA>mocked VAST data</CDATA>",
+      dateTime: session.startTime.plus({ seconds: 10 }),
+      vast: {
+        data: "<CDATA>mocked VAST data</CDATA>",
+      },
     },
     // Manual bumper interstitial
     {
-      dateTime: startDate.plus({ seconds: 30 }),
-      asset: {
-        url: "https://mock.com/interstitial/bumper.m3u8",
-        type: "bumper",
-      },
+      dateTime: session.startTime.plus({ seconds: 30 }),
+      assets: [
+        {
+          url: "https://mock.com/interstitial/bumper.m3u8",
+          kind: "bumper",
+        },
+      ],
     },
     // Manual ad interstitial
     {
-      dateTime: startDate.plus({ seconds: 40 }),
-      asset: {
-        url: "https://mock.com/interstitial/ad.m3u8",
-        type: "ad",
-      },
+      dateTime: session.startTime.plus({ seconds: 40 }),
+      assets: [
+        {
+          url: "https://mock.com/interstitial/ad.m3u8",
+          kind: "ad",
+        },
+      ],
     },
     // Multiple manual interstitials
     {
-      dateTime: startDate.plus({ seconds: 100 }),
-      asset: {
-        url: "https://mock.com/interstitial/master1.m3u8",
-      },
+      dateTime: session.startTime.plus({ seconds: 100 }),
+      assets: [
+        {
+          url: "https://mock.com/interstitial/master1.m3u8",
+        },
+      ],
     },
     {
-      dateTime: startDate.plus({ seconds: 100 }),
-      asset: {
-        url: "https://mock.com/interstitial/master2.m3u8",
-      },
+      dateTime: session.startTime.plus({ seconds: 100 }),
+      assets: [
+        {
+          url: "https://mock.com/interstitial/master2.m3u8",
+        },
+      ],
     },
   ];
-
-  return session;
 }

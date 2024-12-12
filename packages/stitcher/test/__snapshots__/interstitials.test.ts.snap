@@ -1,17 +1,32 @@
 // Bun Snapshot v1, https://goo.gl/fbAQLP
 
+exports[`getAssets should get assets by interstitials 1`] = `
+[
+  {
+    "duration": 25,
+    "url": "https://mock.com/ad_1/master.m3u8",
+  },
+  {
+    "kind": "ad",
+    "url": "https://mock.com/interstitial1/master.m3u8",
+  },
+]
+`;
+
 exports[`getStaticDateRanges should create dateRanges for vod 1`] = `
 [
   {
     "classId": "com.apple.hls.interstitial",
     "clientAttributes": {
       "ASSET-LIST": "stitcher-endpoint/out/asset-list.json?dt=2021-05-02T10%3A12%3A05.250%2B00%3A00&sid=36bab417-0952-4c23-bdf0-9a424e4651ad",
+      "CONTENT-MAY-VARY": "YES",
       "CUE": "ONCE,PRE",
       "RESTRICT": "SKIP,JUMP",
       "RESUME-OFFSET": 0,
-      "SPRS-TYPES": "ad",
+      "TIMELINE-OCCUPIES": "POINT",
+      "TIMELINE-STYLE": "HIGHLIGHT",
     },
-    "id": "1619950325",
+    "id": "1619950325250",
     "startDate": DateTime {
       "_zone": SystemZone {},
       "c": {
@@ -54,12 +69,14 @@ exports[`getStaticDateRanges should create dateRanges for vod 1`] = `
     "classId": "com.apple.hls.interstitial",
     "clientAttributes": {
       "ASSET-LIST": "stitcher-endpoint/out/asset-list.json?dt=2021-05-02T10%3A12%3A15.250%2B00%3A00&sid=36bab417-0952-4c23-bdf0-9a424e4651ad",
+      "CONTENT-MAY-VARY": "YES",
       "CUE": "ONCE",
       "RESTRICT": "SKIP,JUMP",
       "RESUME-OFFSET": 0,
-      "SPRS-TYPES": "ad",
+      "TIMELINE-OCCUPIES": "POINT",
+      "TIMELINE-STYLE": "HIGHLIGHT",
     },
-    "id": "1619950335",
+    "id": "1619950335250",
     "startDate": DateTime {
       "_zone": SystemZone {},
       "c": {
@@ -102,12 +119,14 @@ exports[`getStaticDateRanges should create dateRanges for vod 1`] = `
     "classId": "com.apple.hls.interstitial",
     "clientAttributes": {
       "ASSET-LIST": "stitcher-endpoint/out/asset-list.json?dt=2021-05-02T10%3A12%3A35.250%2B00%3A00&sid=36bab417-0952-4c23-bdf0-9a424e4651ad",
+      "CONTENT-MAY-VARY": "YES",
       "CUE": "ONCE",
       "RESTRICT": "SKIP,JUMP",
       "RESUME-OFFSET": 0,
-      "SPRS-TYPES": "bumper",
+      "TIMELINE-OCCUPIES": "POINT",
+      "TIMELINE-STYLE": "PRIMARY",
     },
-    "id": "1619950355",
+    "id": "1619950355250",
     "startDate": DateTime {
       "_zone": SystemZone {},
       "c": {
@@ -150,12 +169,14 @@ exports[`getStaticDateRanges should create dateRanges for vod 1`] = `
     "classId": "com.apple.hls.interstitial",
     "clientAttributes": {
       "ASSET-LIST": "stitcher-endpoint/out/asset-list.json?dt=2021-05-02T10%3A12%3A45.250%2B00%3A00&sid=36bab417-0952-4c23-bdf0-9a424e4651ad",
+      "CONTENT-MAY-VARY": "YES",
       "CUE": "ONCE",
       "RESTRICT": "SKIP,JUMP",
       "RESUME-OFFSET": 0,
-      "SPRS-TYPES": "ad",
+      "TIMELINE-OCCUPIES": "POINT",
+      "TIMELINE-STYLE": "HIGHLIGHT",
     },
-    "id": "1619950365",
+    "id": "1619950365250",
     "startDate": DateTime {
       "_zone": SystemZone {},
       "c": {
@@ -198,11 +219,64 @@ exports[`getStaticDateRanges should create dateRanges for vod 1`] = `
     "classId": "com.apple.hls.interstitial",
     "clientAttributes": {
       "ASSET-LIST": "stitcher-endpoint/out/asset-list.json?dt=2021-05-02T10%3A13%3A45.250%2B00%3A00&sid=36bab417-0952-4c23-bdf0-9a424e4651ad",
+      "CONTENT-MAY-VARY": "YES",
       "CUE": "ONCE",
       "RESTRICT": "SKIP,JUMP",
       "RESUME-OFFSET": 0,
+      "TIMELINE-OCCUPIES": "POINT",
+      "TIMELINE-STYLE": "PRIMARY",
     },
-    "id": "1619950425",
+    "id": "1619950425250",
+    "startDate": DateTime {
+      "_zone": SystemZone {},
+      "c": {
+        "day": 2,
+        "hour": 10,
+        "millisecond": 250,
+        "minute": 13,
+        "month": 5,
+        "second": 45,
+        "year": 2021,
+      },
+      "invalid": null,
+      "isLuxonDateTime": true,
+      "loc": Locale {
+        "eraCache": {},
+        "fastNumbersCached": null,
+        "intl": "en-US",
+        "locale": "en-US",
+        "meridiemCache": null,
+        "monthsCache": {
+          "format": {},
+          "standalone": {},
+        },
+        "numberingSystem": null,
+        "outputCalendar": null,
+        "specifiedLocale": null,
+        "weekSettings": null,
+        "weekdaysCache": {
+          "format": {},
+          "standalone": {},
+        },
+      },
+      "localWeekData": null,
+      "o": -0,
+      "ts": 1619950425250,
+      "weekData": null,
+    },
+  },
+  {
+    "classId": "com.apple.hls.interstitial",
+    "clientAttributes": {
+      "ASSET-LIST": "stitcher-endpoint/out/asset-list.json?dt=2021-05-02T10%3A13%3A45.250%2B00%3A00&sid=36bab417-0952-4c23-bdf0-9a424e4651ad",
+      "CONTENT-MAY-VARY": "YES",
+      "CUE": "ONCE",
+      "RESTRICT": "SKIP,JUMP",
+      "RESUME-OFFSET": 0,
+      "TIMELINE-OCCUPIES": "POINT",
+      "TIMELINE-STYLE": "PRIMARY",
+    },
+    "id": "1619950425250",
     "startDate": DateTime {
       "_zone": SystemZone {},
       "c": {
@@ -250,11 +324,13 @@ exports[`getStaticDateRanges should create dateRanges for live 1`] = `
     "classId": "com.apple.hls.interstitial",
     "clientAttributes": {
       "ASSET-LIST": "stitcher-endpoint/out/asset-list.json?dt=2021-05-02T10%3A12%3A05.250%2B00%3A00&sid=36bab417-0952-4c23-bdf0-9a424e4651ad",
+      "CONTENT-MAY-VARY": "YES",
       "CUE": "ONCE,PRE",
       "RESTRICT": "SKIP,JUMP",
-      "SPRS-TYPES": "ad",
+      "TIMELINE-OCCUPIES": "POINT",
+      "TIMELINE-STYLE": "HIGHLIGHT",
     },
-    "id": "1619950325",
+    "id": "1619950325250",
     "startDate": DateTime {
       "_zone": SystemZone {},
       "c": {
@@ -297,11 +373,13 @@ exports[`getStaticDateRanges should create dateRanges for live 1`] = `
     "classId": "com.apple.hls.interstitial",
     "clientAttributes": {
       "ASSET-LIST": "stitcher-endpoint/out/asset-list.json?dt=2021-05-02T10%3A12%3A15.250%2B00%3A00&sid=36bab417-0952-4c23-bdf0-9a424e4651ad",
+      "CONTENT-MAY-VARY": "YES",
       "CUE": "ONCE",
       "RESTRICT": "SKIP,JUMP",
-      "SPRS-TYPES": "ad",
+      "TIMELINE-OCCUPIES": "POINT",
+      "TIMELINE-STYLE": "HIGHLIGHT",
     },
-    "id": "1619950335",
+    "id": "1619950335250",
     "startDate": DateTime {
       "_zone": SystemZone {},
       "c": {
@@ -344,11 +422,13 @@ exports[`getStaticDateRanges should create dateRanges for live 1`] = `
     "classId": "com.apple.hls.interstitial",
     "clientAttributes": {
       "ASSET-LIST": "stitcher-endpoint/out/asset-list.json?dt=2021-05-02T10%3A12%3A35.250%2B00%3A00&sid=36bab417-0952-4c23-bdf0-9a424e4651ad",
+      "CONTENT-MAY-VARY": "YES",
       "CUE": "ONCE",
       "RESTRICT": "SKIP,JUMP",
-      "SPRS-TYPES": "bumper",
+      "TIMELINE-OCCUPIES": "POINT",
+      "TIMELINE-STYLE": "PRIMARY",
     },
-    "id": "1619950355",
+    "id": "1619950355250",
     "startDate": DateTime {
       "_zone": SystemZone {},
       "c": {
@@ -391,11 +471,13 @@ exports[`getStaticDateRanges should create dateRanges for live 1`] = `
     "classId": "com.apple.hls.interstitial",
     "clientAttributes": {
       "ASSET-LIST": "stitcher-endpoint/out/asset-list.json?dt=2021-05-02T10%3A12%3A45.250%2B00%3A00&sid=36bab417-0952-4c23-bdf0-9a424e4651ad",
+      "CONTENT-MAY-VARY": "YES",
       "CUE": "ONCE",
       "RESTRICT": "SKIP,JUMP",
-      "SPRS-TYPES": "ad",
+      "TIMELINE-OCCUPIES": "POINT",
+      "TIMELINE-STYLE": "HIGHLIGHT",
     },
-    "id": "1619950365",
+    "id": "1619950365250",
     "startDate": DateTime {
       "_zone": SystemZone {},
       "c": {
@@ -438,10 +520,62 @@ exports[`getStaticDateRanges should create dateRanges for live 1`] = `
     "classId": "com.apple.hls.interstitial",
     "clientAttributes": {
       "ASSET-LIST": "stitcher-endpoint/out/asset-list.json?dt=2021-05-02T10%3A13%3A45.250%2B00%3A00&sid=36bab417-0952-4c23-bdf0-9a424e4651ad",
+      "CONTENT-MAY-VARY": "YES",
       "CUE": "ONCE",
       "RESTRICT": "SKIP,JUMP",
+      "TIMELINE-OCCUPIES": "POINT",
+      "TIMELINE-STYLE": "PRIMARY",
     },
-    "id": "1619950425",
+    "id": "1619950425250",
+    "startDate": DateTime {
+      "_zone": SystemZone {},
+      "c": {
+        "day": 2,
+        "hour": 10,
+        "millisecond": 250,
+        "minute": 13,
+        "month": 5,
+        "second": 45,
+        "year": 2021,
+      },
+      "invalid": null,
+      "isLuxonDateTime": true,
+      "loc": Locale {
+        "eraCache": {},
+        "fastNumbersCached": null,
+        "intl": "en-US",
+        "locale": "en-US",
+        "meridiemCache": null,
+        "monthsCache": {
+          "format": {},
+          "standalone": {},
+        },
+        "numberingSystem": null,
+        "outputCalendar": null,
+        "specifiedLocale": null,
+        "weekSettings": null,
+        "weekdaysCache": {
+          "format": {},
+          "standalone": {},
+        },
+      },
+      "localWeekData": null,
+      "o": -0,
+      "ts": 1619950425250,
+      "weekData": null,
+    },
+  },
+  {
+    "classId": "com.apple.hls.interstitial",
+    "clientAttributes": {
+      "ASSET-LIST": "stitcher-endpoint/out/asset-list.json?dt=2021-05-02T10%3A13%3A45.250%2B00%3A00&sid=36bab417-0952-4c23-bdf0-9a424e4651ad",
+      "CONTENT-MAY-VARY": "YES",
+      "CUE": "ONCE",
+      "RESTRICT": "SKIP,JUMP",
+      "TIMELINE-OCCUPIES": "POINT",
+      "TIMELINE-STYLE": "PRIMARY",
+    },
+    "id": "1619950425250",
     "startDate": DateTime {
       "_zone": SystemZone {},
       "c": {
