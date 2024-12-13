@@ -8,7 +8,6 @@ import {
 import { encrypt } from "./lib/crypto";
 import { createUrl, joinUrl, resolveUri } from "./lib/url";
 import {
-  getRenditions,
   parseMasterPlaylist,
   parseMediaPlaylist,
   stringifyMasterPlaylist,
@@ -17,7 +16,7 @@ import {
 import { updateSession } from "./session";
 import { fetchVmap, toAdBreakTimeOffset } from "./vmap";
 import type { Filter } from "./filters";
-import type { MasterPlaylist, MediaPlaylist, RenditionType } from "./parser";
+import type { MasterPlaylist, MediaPlaylist } from "./parser";
 import type { Session } from "./session";
 import type { Interstitial } from "./types";
 import type { VmapAdBreak } from "./vmap";
@@ -142,7 +141,7 @@ export function createMasterUrl(params: {
 function createMediaUrl(params: {
   url: string;
   sessionId?: string;
-  type?: RenditionType;
+  type?: "AUDIO" | "SUBTITLES";
 }) {
   return createUrl("out/playlist.m3u8", {
     eurl: encrypt(params.url),
@@ -166,16 +165,17 @@ export function rewriteMasterPlaylistUrls(
     });
   }
 
-  const renditions = getRenditions(master.variants);
-
-  renditions.forEach((rendition) => {
+  for (const rendition of master.renditions) {
+    if (!rendition.uri) {
+      continue;
+    }
     const url = joinUrl(params.origUrl, rendition.uri);
     rendition.uri = createMediaUrl({
       url,
       sessionId: params.session?.id,
       type: rendition.type,
     });
-  });
+  }
 }
 
 export function rewriteMediaPlaylistUrls(

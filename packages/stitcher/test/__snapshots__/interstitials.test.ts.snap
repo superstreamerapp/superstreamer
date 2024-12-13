@@ -1,18 +1,5 @@
 // Bun Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`getAssets should get assets by interstitials 1`] = `
-[
-  {
-    "duration": 25,
-    "url": "https://mock.com/ad_1/master.m3u8",
-  },
-  {
-    "kind": "ad",
-    "url": "https://mock.com/interstitial1/master.m3u8",
-  },
-]
-`;
-
 exports[`getStaticDateRanges should create dateRanges for vod 1`] = `
 [
   {
@@ -613,6 +600,19 @@ exports[`getStaticDateRanges should create dateRanges for live 1`] = `
       "ts": 1619950425250,
       "weekData": null,
     },
+  },
+]
+`;
+
+exports[`getAssets should get assets by interstitials 1`] = `
+[
+  {
+    "duration": 25,
+    "url": "https://mock.com/ad_1/master.m3u8",
+  },
+  {
+    "kind": "ad",
+    "url": "https://mock.com/interstitial1/master.m3u8",
   },
 ]
 `;

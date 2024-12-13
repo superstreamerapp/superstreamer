@@ -1,6 +1,6 @@
 import { assert } from "shared/assert";
 import { lexicalParse } from "./lexical-parse";
-import type { Media, StreamInf, Tag } from "./lexical-parse";
+import type { Tag } from "./lexical-parse";
 import type {
   DateRange,
   MasterPlaylist,
@@ -13,6 +13,45 @@ import type {
 } from "./types";
 import type { DateTime } from "luxon";
 
+function formatMasterPlaylist(tags: Tag[]): MasterPlaylist {
+  let independentSegments = false;
+  const variants: Variant[] = [];
+  const renditions: Rendition[] = [];
+
+  tags.forEach(([name, value], index) => {
+    if (name === "EXT-X-INDEPENDENT-SEGMENTS") {
+      independentSegments = true;
+    }
+    if (name === "EXT-X-MEDIA") {
+      renditions.push({
+        type: value.type,
+        groupId: value.groupId,
+        name: value.name,
+        uri: value.uri,
+        channels: value.channels,
+        language: value.language,
+      });
+    }
+    if (name === "EXT-X-STREAM-INF") {
+      const uri = nextLiteral(tags, index);
+      variants.push({
+        uri,
+        bandwidth: value.bandwidth,
+        resolution: value.resolution,
+        codecs: value.codecs,
+        audio: value.audio,
+        subtitles: value.subtitles,
+      });
+    }
+  });
+
+  return {
+    independentSegments,
+    variants,
+    renditions,
+  };
+}
+
 function formatMediaPlaylist(tags: Tag[]): MediaPlaylist {
   let targetDuration: number | undefined;
   let endlist = false;
@@ -20,7 +59,6 @@ function formatMediaPlaylist(tags: Tag[]): MediaPlaylist {
   let independentSegments = false;
   let mediaSequenceBase: number | undefined;
   let discontinuitySequenceBase: number | undefined;
-  let map: MediaInitializationSection | undefined;
   const dateRanges: DateRange[] = [];
 
   tags.forEach(([name, value]) => {
@@ -32,9 +70,6 @@ function formatMediaPlaylist(tags: Tag[]): MediaPlaylist {
     }
     if (name === "EXT-X-PLAYLIST-TYPE") {
       playlistType = value;
-    }
-    if (name === "EXT-X-MAP") {
-      map = value;
     }
     if (name === "EXT-X-INDEPENDENT-SEGMENTS") {
       independentSegments = true;
@@ -53,7 +88,12 @@ function formatMediaPlaylist(tags: Tag[]): MediaPlaylist {
   const segments: Segment[] = [];
   let segmentStart = -1;
 
-  tags.forEach(([name], index) => {
+  let map: MediaInitializationSection | undefined;
+  tags.forEach(([name, value], index) => {
+    if (name === "EXT-X-MAP") {
+      map = value;
+    }
+
     if (isSegmentTag(name)) {
       segmentStart = index - 1;
     }
@@ -86,6 +126,31 @@ function formatMediaPlaylist(tags: Tag[]): MediaPlaylist {
   };
 }
 
+function nextLiteral(tags: Tag[], index: number) {
+  if (!tags[index + 1]) {
+    throw new Error("Expecting next tag to be found");
+  }
+  const tag = tags[index + 1];
+  if (!tag) {
+    throw new Error(`Expected valid tag on ${index + 1}`);
+  }
+  const [name, value] = tag;
+  if (name !== "LITERAL") {
+    throw new Error("Expecting next tag to be a literal");
+  }
+  return value;
+}
+
+function isSegmentTag(name: Tag[0]) {
+  switch (name) {
+    case "EXTINF":
+    case "EXT-X-DISCONTINUITY":
+    case "EXT-X-PROGRAM-DATE-TIME":
+      return true;
+  }
+  return false;
+}
+
 function parseSegment(
   tags: Tag[],
   uri: string,
@@ -116,120 +181,6 @@ function parseSegment(
     map,
     programDateTime,
   };
-}
-
-function createRendition(media: Media, renditions: Map<string, Rendition>) {
-  let rendition = renditions.get(media.uri);
-  if (rendition) {
-    return rendition;
-  }
-
-  rendition = {
-    type: media.type,
-    groupId: media.groupId,
-    name: media.name,
-    language: media.language,
-    uri: media.uri,
-    channels: media.channels,
-  };
-
-  renditions.set(media.uri, rendition);
-
-  return rendition;
-}
-
-function addRendition(
-  variant: Variant,
-  media: Media,
-  renditions: Map<string, Rendition>,
-) {
-  const rendition = createRendition(media, renditions);
-
-  if (media.type === "AUDIO") {
-    variant.audio.push(rendition);
-  }
-
-  if (media.type === "SUBTITLES") {
-    variant.subtitles.push(rendition);
-  }
-}
-
-function parseVariant(
-  tags: Tag[],
-  streamInf: StreamInf,
-  uri: string,
-  renditions: Map<string, Rendition>,
-) {
-  const variant: Variant = {
-    uri,
-    bandwidth: streamInf.bandwidth,
-    resolution: streamInf.resolution,
-    codecs: streamInf.codecs,
-    audio: [],
-    subtitles: [],
-  };
-
-  for (const [name, value] of tags) {
-    if (name === "EXT-X-MEDIA") {
-      if (
-        streamInf.audio === value.groupId ||
-        streamInf.subtitles === value.groupId
-      ) {
-        addRendition(variant, value, renditions);
-      }
-    }
-  }
-
-  return variant;
-}
-
-function formatMasterPlaylist(tags: Tag[]): MasterPlaylist {
-  const variants: Variant[] = [];
-  let independentSegments = false;
-
-  const renditions = new Map<string, Rendition>();
-
-  tags.forEach(([name, value], index) => {
-    if (name === "EXT-X-STREAM-INF") {
-      const uri = nextLiteral(tags, index);
-      const variant = parseVariant(tags, value, uri, renditions);
-      variants.push(variant);
-    }
-    if (name === "EXT-X-INDEPENDENT-SEGMENTS") {
-      independentSegments = true;
-    }
-  });
-
-  return {
-    independentSegments,
-    variants,
-  };
-}
-
-function nextLiteral(tags: Tag[], index: number) {
-  if (!tags[index + 1]) {
-    throw new Error("Expecting next tag to be found");
-  }
-  const tag = tags[index + 1];
-  if (!tag) {
-    throw new Error(`Expected valid tag on ${index + 1}`);
-  }
-  const [name, value] = tag;
-  if (name !== "LITERAL") {
-    throw new Error("Expecting next tag to be a literal");
-  }
-  return value;
-}
-
-function isSegmentTag(name: Tag[0]) {
-  switch (name) {
-    case "EXTINF":
-    case "EXT-X-DISCONTINUITY":
-    case "EXT-X-MAP":
-    case "EXT-X-PROGRAM-DATE-TIME":
-      return true;
-  }
-  return false;
 }
 
 export function parseMasterPlaylist(text: string) {

@@ -5,14 +5,12 @@ export interface Resolution {
   height: number;
 }
 
-export type RenditionType = "AUDIO" | "SUBTITLES";
-
 export interface Rendition {
-  type: RenditionType;
   groupId: string;
   name: string;
+  type: "AUDIO" | "SUBTITLES";
+  uri?: string;
   language?: string;
-  uri: string;
   channels?: string;
 }
 
@@ -21,13 +19,14 @@ export interface Variant {
   bandwidth: number;
   codecs?: string;
   resolution?: Resolution;
-  audio: Rendition[];
-  subtitles: Rendition[];
+  audio?: string;
+  subtitles?: string;
 }
 
 export interface MasterPlaylist {
   independentSegments?: boolean;
   variants: Variant[];
+  renditions: Rendition[];
 }
 
 export interface MediaInitializationSection {

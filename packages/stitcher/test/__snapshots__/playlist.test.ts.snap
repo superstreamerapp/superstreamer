@@ -2,25 +2,25 @@
 
 exports[`rewriteMasterPlaylistUrls should rewrite 1`] = `
 {
+  "renditions": [
+    {
+      "groupId": "group_1",
+      "name": "audio_1",
+      "type": "AUDIO",
+      "uri": "stitcher-endpoint/out/playlist.m3u8?eurl=MDcxZDFiMTA1OTVkNWExNDBjMTkxNjVjMTgwYTEyNWIwODBkMWIxMDBjNWExNDQxMGE1Yg%3D%3D&type=AUDIO",
+    },
+    {
+      "groupId": "group_2",
+      "name": "subtitles_1",
+      "type": "SUBTITLES",
+      "uri": "stitcher-endpoint/out/playlist.m3u8?eurl=MDcxZDFiMTA1OTVkNWExNDBjMTkxNjVjMTgwYTEyNWIwNDBkMTkxZDE2MGExNTFkMTI0ZDEyNDcxYzRh&type=SUBTITLES",
+    },
+  ],
   "variants": [
     {
-      "audio": [
-        {
-          "groupId": "group_1",
-          "name": "audio_1",
-          "type": "AUDIO",
-          "uri": "stitcher-endpoint/out/playlist.m3u8?eurl=MDcxZDFiMTA1OTVkNWExNDBjMTkxNjVjMTgwYTEyNWIwODBkMWIxMDBjNWExNDQxMGE1Yg%3D%3D&type=AUDIO",
-        },
-      ],
+      "audio": "group_1",
       "bandwidth": 1000,
-      "subtitles": [
-        {
-          "groupId": "group_1",
-          "name": "subtitles_1",
-          "type": "SUBTITLES",
-          "uri": "stitcher-endpoint/out/playlist.m3u8?eurl=MDcxZDFiMTA1OTVkNWExNDBjMTkxNjVjMTgwYTEyNWIwNDBkMTkxZDE2MGExNTFkMTI0ZDEyNDcxYzRh&type=SUBTITLES",
-        },
-      ],
+      "subtitles": "group_2",
       "uri": "stitcher-endpoint/out/playlist.m3u8?eurl=MDcxZDFiMTA1OTVkNWExNDBjMTkxNjVjMTgwYTEyNWIxMzAxMWIwYzBjNWExNDQxMGE1Yg%3D%3D",
     },
   ],
@@ -29,25 +29,25 @@ exports[`rewriteMasterPlaylistUrls should rewrite 1`] = `
 
 exports[`rewriteMasterPlaylistUrls should include session id 1`] = `
 {
+  "renditions": [
+    {
+      "groupId": "group_1",
+      "name": "audio_1",
+      "type": "AUDIO",
+      "uri": "stitcher-endpoint/out/playlist.m3u8?eurl=MDcxZDFiMTA1OTVkNWExNDBjMTkxNjVjMTgwYTEyNWIwODBkMWIxMDBjNWExNDQxMGE1Yg%3D%3D&sid=36bab417-0952-4c23-bdf0-9a424e4651ad&type=AUDIO",
+    },
+    {
+      "groupId": "group_2",
+      "name": "subtitles_1",
+      "type": "SUBTITLES",
+      "uri": "stitcher-endpoint/out/playlist.m3u8?eurl=MDcxZDFiMTA1OTVkNWExNDBjMTkxNjVjMTgwYTEyNWIwNDBkMTkxZDE2MGExNTFkMTI0ZDEyNDcxYzRh&sid=36bab417-0952-4c23-bdf0-9a424e4651ad&type=SUBTITLES",
+    },
+  ],
   "variants": [
     {
-      "audio": [
-        {
-          "groupId": "group_1",
-          "name": "audio_1",
-          "type": "AUDIO",
-          "uri": "stitcher-endpoint/out/playlist.m3u8?eurl=MDcxZDFiMTA1OTVkNWExNDBjMTkxNjVjMTgwYTEyNWIwODBkMWIxMDBjNWExNDQxMGE1Yg%3D%3D&sid=36bab417-0952-4c23-bdf0-9a424e4651ad&type=AUDIO",
-        },
-      ],
+      "audio": "group_1",
       "bandwidth": 1000,
-      "subtitles": [
-        {
-          "groupId": "group_1",
-          "name": "subtitles_1",
-          "type": "SUBTITLES",
-          "uri": "stitcher-endpoint/out/playlist.m3u8?eurl=MDcxZDFiMTA1OTVkNWExNDBjMTkxNjVjMTgwYTEyNWIwNDBkMTkxZDE2MGExNTFkMTI0ZDEyNDcxYzRh&sid=36bab417-0952-4c23-bdf0-9a424e4651ad&type=SUBTITLES",
-        },
-      ],
+      "subtitles": "group_2",
       "uri": "stitcher-endpoint/out/playlist.m3u8?eurl=MDcxZDFiMTA1OTVkNWExNDBjMTkxNjVjMTgwYTEyNWIxMzAxMWIwYzBjNWExNDQxMGE1Yg%3D%3D&sid=36bab417-0952-4c23-bdf0-9a424e4651ad",
     },
   ],

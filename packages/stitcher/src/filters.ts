@@ -85,10 +85,14 @@ export function filterMasterPlaylist(master: MasterPlaylist, filter: Filter) {
   }
   if (filter.audioLanguage !== undefined) {
     const list = parseFilterToList(filter.audioLanguage);
-    master.variants.filter((variant) => {
-      variant.audio = variant.audio.filter(
-        (audio) => !audio.language || list.includes(audio.language),
-      );
+    master.renditions = master.renditions.filter((rendition) => {
+      if (rendition.type === "AUDIO") {
+        if (rendition.language && list.includes(rendition.language)) {
+          return true;
+        }
+        return false;
+      }
+      return true;
     });
   }
 }

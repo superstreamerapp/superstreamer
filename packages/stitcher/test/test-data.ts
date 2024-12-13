@@ -4,26 +4,26 @@ import type { Session } from "../src/session";
 
 export function fakeMasterPlaylist(): MasterPlaylist {
   return {
+    renditions: [
+      {
+        type: "AUDIO",
+        groupId: "group_1",
+        name: "audio_1",
+        uri: "audio.m3u8",
+      },
+      {
+        type: "SUBTITLES",
+        groupId: "group_2",
+        name: "subtitles_1",
+        uri: "subtitles.m3u8",
+      },
+    ],
     variants: [
       {
         uri: "video.m3u8",
         bandwidth: 1000,
-        audio: [
-          {
-            type: "AUDIO",
-            groupId: "group_1",
-            name: "audio_1",
-            uri: "audio.m3u8",
-          },
-        ],
-        subtitles: [
-          {
-            type: "SUBTITLES",
-            groupId: "group_1",
-            name: "subtitles_1",
-            uri: "subtitles.m3u8",
-          },
-        ],
+        audio: "group_1",
+        subtitles: "group_2",
       },
     ],
   };
