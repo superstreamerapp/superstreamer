@@ -91,6 +91,7 @@ function mapSessionInterstitials(
       typeof time === "string"
         ? DateTime.fromISO(time)
         : startTime.plus({ seconds: time });
+
     return {
       dateTime,
       duration,
