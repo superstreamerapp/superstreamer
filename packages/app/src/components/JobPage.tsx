@@ -1,5 +1,5 @@
 import { Card, CardBody, CardHeader } from "@nextui-org/react";
-import { DataDump } from "./DataDump";
+import { DataView } from "./DataView";
 import { Format } from "./Format";
 import { Logs } from "./Logs";
 import type { Job } from "@superstreamer/api/client";
@@ -31,13 +31,13 @@ export function JobPage({ job, logs }: JobPageProps) {
             <Card className="p-0">
               <CardHeader className="p-4">Input</CardHeader>
               <CardBody className="p-4 pt-0">
-                <DataDump data={job.inputData} />
+                <DataView data={job.inputData} />
               </CardBody>
             </Card>
             <Card className="p-0">
               <CardHeader className="p-4">Output</CardHeader>
               <CardBody className="p-4 pt-0">
-                <DataDump data={job.outputData} />
+                {job.outputData ? <DataView data={job.outputData} /> : null}
               </CardBody>
             </Card>
           </div>

@@ -1,6 +1,6 @@
 import { Modal, ModalBody, ModalContent } from "@nextui-org/react";
 import useSWR from "swr";
-import { DataDump } from "./DataDump";
+import { DataView } from "./DataView";
 import { useAuth } from "../auth";
 import type { StorageFile } from "@superstreamer/api/client";
 
@@ -50,7 +50,7 @@ export function FilePreview({ path, onClose }: FilePreviewProps) {
 
 function Preview({ file }: { file: StorageFile }) {
   if (file.mode === "payload") {
-    return <DataDump data={file.payload} />;
+    return <DataView data={file.payload} />;
   }
   if (file.mode === "url") {
     if (file.type === "video") {

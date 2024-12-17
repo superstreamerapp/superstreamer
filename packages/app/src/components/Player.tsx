@@ -1,48 +1,34 @@
-import {
-  ControllerProvider,
-  Controls,
-  useController,
-} from "@superstreamer/player/react";
-import Hls from "hls.js";
-import { useEffect, useState } from "react";
-import type { Lang, Metadata } from "@superstreamer/player/react";
+import { HlsPlayer } from "@superstreamer/player";
+import { useEffect, useRef } from "react";
+import { usePlayer } from "../context/PlayerContext";
 
 interface PlayerProps {
-  url?: string | null;
-  metadata: Metadata;
-  lang: Lang;
+  url: string;
 }
 
-export function Player({ url, lang, metadata }: PlayerProps) {
-  const [hls] = useState(() => new Hls());
-  const controller = useController(hls, {
-    multipleVideoElements: false,
-  });
+export function Player({ url }: PlayerProps) {
+  const ref = useRef<HTMLDivElement>(null);
+  const { player, setPlayer } = usePlayer();
 
   useEffect(() => {
-    if (url) {
-      hls.loadSource(url);
+    const player = new HlsPlayer(ref.current!);
+    setPlayer(player);
+
+    return () => {
+      setPlayer(null);
+      player.destroy();
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!player || !url) {
+      return;
     }
-  }, [url]);
+    player.load(url);
+    return () => {
+      player.unload();
+    };
+  }, [player, url]);
 
-  useEffect(() => {
-    Object.assign(window, {
-      facade: controller.facade,
-    });
-  }, [controller]);
-
-  return (
-    <ControllerProvider controller={controller}>
-      <div
-        className="relative aspect-video bg-black overflow-hidden rounded-md"
-        data-sprs-container
-      >
-        <video
-          ref={controller.mediaRef}
-          className="absolute inset-O w-full h-full"
-        />
-        <Controls lang={lang} metadata={metadata} />
-      </div>
-    </ControllerProvider>
-  );
+  return <div className="relative aspect-video bg-black" ref={ref} />;
 }

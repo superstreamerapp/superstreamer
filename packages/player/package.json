@@ -1,6 +1,6 @@
 {
   "name": "@superstreamer/player",
-  "version": "1.2.3",
+  "version": "2.0.0",
   "description": "Video player controls (React, Tailwind) and an HLS.js facade",
   "author": "Superstreamer",
   "homepage": "https://github.com/matvp91/superstreamer/tree/main/packages/player",
@@ -10,43 +10,24 @@
     }
   ],
   "type": "module",
-  "exports": {
-    ".": {
-      "types": "./dist/index.d.ts",
-      "default": "./dist/index;js"
-    },
-    "./react": {
-      "types": "./dist/react.d.ts",
-      "default": "./dist/react.js"
-    }
-  },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
   "files": [
     "dist"
   ],
   "scripts": {
     "dev": "tsup --watch",
     "build": "tsc && tsup",
-   "lint": "tsc && eslint",
+    "lint": "tsc && eslint",
     "typedoc": "typedoc --tsconfig tsconfig.typedoc.json"
   },
-  "peerDependencies": {
-    "hls.js": "^1.6.0-beta.1",
-    "react": "^18.3.1"
-  },
   "dependencies": {
-    "clsx": "^2.1.1",
-    "eventemitter3": "^5.0.1",
-    "screenfull": "^6.0.2",
-    "use-sync-external-store": "^1.2.2",
-    "zustand": "^5.0.0"
+    "hls.js": "^1.6.0-beta.2",
+    "tseep": "^1.3.1",
+    "shared": "workspace:*"
   },
   "devDependencies": {
-    "@types/eventemitter3": "^2.0.2",
-    "@types/react": "^18.3.3",
-    "@types/use-sync-external-store": "^0.0.6",
-    "@vitejs/plugin-react": "^4.3.1",
     "config": "workspace:*",
-    "esbuild-plugin-svgr": "^3.0.0",
     "eslint": "^9.13.0",
     "tsup": "^8.3.5",
     "typedoc": "^0.26.8",

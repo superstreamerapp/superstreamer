@@ -46,7 +46,6 @@ export function CodeEditor({
 
   return (
     <MonacoEditor
-      className="h-full w-full"
       defaultLanguage="json"
       defaultValue={value}
       onMount={onMount}
