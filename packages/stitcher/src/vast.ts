@@ -115,6 +115,7 @@ async function mapAdToAsset(ad: VastAd): Promise<InterstitialAsset | null> {
     url: url,
     duration: creative.duration,
     kind: "ad",
+    tracking: creative.trackingEvents,
   };
 }
 
