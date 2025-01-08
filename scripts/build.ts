@@ -7,4 +7,4 @@ await Promise.all([
   $`bun run --filter="@superstreamer/app" build`,
   $`bun run --filter="@superstreamer/artisan" build`,
   $`bun run --filter="@superstreamer/stitcher" build`,
-])
+]);

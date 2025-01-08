@@ -105,6 +105,7 @@ export function addFakeInterstitials(session: Session) {
           type: "asset",
           data: {
             url: "https://mock.com/interstitial/bumper.m3u8",
+            duration: 5,
             kind: "bumper",
           },
         },
@@ -112,6 +113,7 @@ export function addFakeInterstitials(session: Session) {
           type: "asset",
           data: {
             url: "https://mock.com/interstitial/ad.m3u8",
+            duration: 10,
             kind: "ad",
           },
         },

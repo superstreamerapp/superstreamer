@@ -48,6 +48,7 @@ describe("getAssets", () => {
             type: "asset",
             data: {
               url: "https://mock.com/interstitial1/master.m3u8",
+              duration: 10,
               kind: "ad",
             },
           },

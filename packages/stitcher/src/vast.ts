@@ -111,10 +111,25 @@ async function mapAdToAsset(ad: VastAd): Promise<InterstitialAsset | null> {
     return null;
   }
 
+  const impressionUrls: string[] = [];
+  for (const urlTemplate of ad.impressionURLTemplates) {
+    impressionUrls.push(urlTemplate.url);
+  }
+
+  const clickThroughUrls: string[] = [];
+  for (const urlTemplate of creative.videoClickTrackingURLTemplates) {
+    clickThroughUrls.push(urlTemplate.url);
+  }
+
   return {
     url: url,
     duration: creative.duration,
     kind: "ad",
+    tracking: {
+      impression: impressionUrls,
+      clickThrough: clickThroughUrls,
+      ...creative.trackingEvents,
+    },
   };
 }
 

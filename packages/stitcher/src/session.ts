@@ -4,6 +4,7 @@ import { kv } from "./adapters/kv";
 import { mergeInterstitials } from "./interstitials";
 import { JSON } from "./lib/json";
 import { resolveUri } from "./lib/url";
+import { fetchDuration } from "./playlist";
 import type { Interstitial, InterstitialChunk } from "./types";
 import type { VmapParams } from "./vmap";
 
@@ -53,7 +54,7 @@ export async function createSession(params: {
   };
 
   if (params.interstitials) {
-    const interstitials = mapSessionInterstitials(
+    const interstitials = await mapSessionInterstitials(
       startTime,
       params.interstitials,
     );
@@ -79,7 +80,7 @@ export async function updateSession(session: Session) {
   await kv.set(`session:${session.id}`, value, session.expiry);
 }
 
-function mapSessionInterstitials(
+async function mapSessionInterstitials(
   startTime: DateTime,
   interstitials: SessionInterstitial[],
 ) {
@@ -95,12 +96,16 @@ function mapSessionInterstitials(
 
     if (interstitial.assets) {
       for (const asset of interstitial.assets) {
-        const { uri, ...rest } = asset;
+        const { uri, kind } = asset;
+
+        const url = resolveUri(uri);
+
         chunks.push({
           type: "asset",
           data: {
-            url: resolveUri(uri),
-            ...rest,
+            url,
+            duration: await fetchDuration(url),
+            kind,
           },
         });
       }
