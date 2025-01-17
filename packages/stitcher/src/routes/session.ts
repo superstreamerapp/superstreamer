@@ -5,6 +5,7 @@ import { decrypt } from "../lib/crypto";
 import {
   createMasterUrl,
   formatAssetList,
+  formatLiveAssetList,
   formatMasterPlaylist,
   formatMediaPlaylist,
 } from "../playlist";
@@ -181,6 +182,12 @@ export const sessionRoutes = new Elysia()
     "/out/asset-list.json",
     async ({ query }) => {
       const sessionId = query.sid;
+
+      // TODO: THIS IS A BAD IDEA
+      if (sessionId === "live") {
+        return await formatLiveAssetList();
+      }
+
       const dateTime = DateTime.fromISO(query.dt);
 
       const session = await getSession(sessionId);

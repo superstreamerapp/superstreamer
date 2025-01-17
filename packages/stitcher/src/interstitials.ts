@@ -1,6 +1,6 @@
 import { createUrl } from "./lib/url";
 import { getAssetsFromVast } from "./vast";
-import type { DateRange } from "./parser";
+import type { CueOut, DateRange, MediaPlaylist } from "./parser";
 import type { Session } from "./session";
 import type { Interstitial, InterstitialAsset } from "./types";
 import type { DateTime } from "luxon";
@@ -111,4 +111,30 @@ function getTimelineStyle(interstitial: Interstitial) {
     }
   }
   return "PRIMARY";
+}
+
+export function insertInterstitialsFromCuesMap(
+  cuesMap: {
+    dateTime: DateTime;
+    cueOut: CueOut;
+  }[],
+  media: MediaPlaylist,
+) {
+  for (const item of cuesMap) {
+    const clientAttributes: Record<string, number | string> = {
+      RESTRICT: "SKIP,JUMP",
+      "ASSET-LIST": createUrl("out/asset-list.json", {
+        dt: item.dateTime.toISO(),
+        sid: "live",
+      }),
+      // "PLAYOUT-LIMIT": item.cueOut.duration,
+    };
+
+    media.dateRanges.push({
+      classId: "com.apple.hls.interstitial",
+      id: `${item.dateTime.toMillis()}`,
+      startDate: item.dateTime.minus({ milliseconds: 1 }),
+      clientAttributes,
+    });
+  }
 }

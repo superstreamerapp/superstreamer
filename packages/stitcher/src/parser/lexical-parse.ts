@@ -19,6 +19,7 @@ const EMPTY_TAGS = [
   "EXT-X-ENDLIST",
   "EXT-X-I-FRAMES-ONLY",
   "EXT-X-INDEPENDENT-SEGMENTS",
+  "EXT-X-CUE-IN",
 ] as const;
 
 const NUMBER_TAGS = [
@@ -40,7 +41,12 @@ export type Tag =
   | ["EXT-X-STREAM-INF", StreamInf]
   | ["EXT-X-MEDIA", Media]
   | ["EXT-X-MAP", MediaInitializationSection]
-  | ["EXT-X-DATERANGE", DateRange];
+  | ["EXT-X-DATERANGE", DateRange]
+  | ["EXT-X-CUE-OUT", CueOut];
+
+export interface CueOut {
+  duration: number;
+}
 
 export interface ExtInf {
   duration: number;
@@ -272,6 +278,29 @@ function parseLine(line: string): Tag | null {
           classId: attrs.classId,
           startDate: attrs.startDate,
           clientAttributes: attrs.clientAttributes,
+        },
+      ];
+    }
+
+    case "EXT-X-CUE-OUT": {
+      assert(param, "EXT-X-CUE-OUT: no param");
+
+      const attrs: Partial<CueOut> = {};
+
+      mapAttributes(param, (key, value) => {
+        switch (key) {
+          case "DURATION":
+            attrs.duration = Number.parseFloat(value);
+            break;
+        }
+      });
+
+      assert(attrs.duration, "EXT-X-CUE-OUT: no duration");
+
+      return [
+        name,
+        {
+          duration: attrs.duration,
         },
       ];
     }

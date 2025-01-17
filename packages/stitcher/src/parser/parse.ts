@@ -2,6 +2,7 @@ import { assert } from "shared/assert";
 import { lexicalParse } from "./lexical-parse";
 import type { Tag } from "./lexical-parse";
 import type {
+  CueOut,
   DateRange,
   MasterPlaylist,
   MediaInitializationSection,
@@ -94,7 +95,9 @@ function formatMediaPlaylist(tags: Tag[]): MediaPlaylist {
       map = value;
     }
 
-    if (isSegmentTag(name)) {
+    // TODO: We can have multiple tags covering a segment, do not select
+    // a new segmentStart when we already have one. This merely means there are multiple.
+    if (isSegmentTag(name) && segmentStart === -1) {
       segmentStart = index - 1;
     }
 
@@ -146,6 +149,9 @@ function isSegmentTag(name: Tag[0]) {
     case "EXTINF":
     case "EXT-X-DISCONTINUITY":
     case "EXT-X-PROGRAM-DATE-TIME":
+    case "EXT-X-CUE-OUT":
+    case "EXT-X-CUE-IN":
+    case "EXT-X-MAP":
       return true;
   }
   return false;
@@ -159,6 +165,8 @@ function parseSegment(
   let duration: number | undefined;
   let discontinuity: boolean | undefined;
   let programDateTime: DateTime | undefined;
+  let cueOut: CueOut | undefined;
+  let cueIn: boolean | undefined;
 
   tags.forEach(([name, value]) => {
     if (name === "EXTINF") {
@@ -170,6 +178,12 @@ function parseSegment(
     if (name === "EXT-X-PROGRAM-DATE-TIME") {
       programDateTime = value;
     }
+    if (name === "EXT-X-CUE-OUT") {
+      cueOut = value;
+    }
+    if (name === "EXT-X-CUE-IN") {
+      cueIn = true;
+    }
   });
 
   assert(duration, "parseSegment: duration not found");
@@ -180,6 +194,8 @@ function parseSegment(
     discontinuity,
     map,
     programDateTime,
+    cueOut,
+    cueIn,
   };
 }
 

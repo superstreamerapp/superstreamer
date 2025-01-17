@@ -3,6 +3,7 @@ import { filterMasterPlaylist, formatFilterToQueryParam } from "./filters";
 import {
   getAssets,
   getStaticDateRanges,
+  insertInterstitialsFromCuesMap,
   mergeInterstitials,
 } from "./interstitials";
 import { encrypt } from "./lib/crypto";
@@ -14,9 +15,10 @@ import {
   stringifyMediaPlaylist,
 } from "./parser";
 import { updateSession } from "./session";
+import { getAssetsFromVast } from "./vast";
 import { fetchVmap, toAdBreakTimeOffset } from "./vmap";
 import type { Filter } from "./filters";
-import type { MasterPlaylist, MediaPlaylist } from "./parser";
+import type { CueOut, MasterPlaylist, MediaPlaylist } from "./parser";
 import type { Session } from "./session";
 import type { Interstitial } from "./types";
 import type { VmapAdBreak } from "./vmap";
@@ -69,6 +71,8 @@ export async function formatMediaPlaylist(
   }
 
   rewriteMediaPlaylistUrls(media, mediaUrl);
+
+  rewriteCues(media);
 
   return stringifyMediaPlaylist(media);
 }
@@ -190,6 +194,33 @@ export function rewriteMediaPlaylistUrls(
   });
 }
 
+function rewriteCues(media: MediaPlaylist) {
+  const cuesMap: {
+    dateTime: DateTime;
+    cueOut: CueOut;
+  }[] = [];
+
+  for (const segment of media.segments) {
+    if (segment.cueIn) {
+      delete segment.cueIn;
+      segment.discontinuity = true;
+    }
+    if (segment.cueOut) {
+      if (!segment.programDateTime) {
+        throw new Error("No PDT");
+      }
+      cuesMap.push({
+        dateTime: segment.programDateTime,
+        cueOut: segment.cueOut,
+      });
+      delete segment.cueOut;
+      segment.discontinuity = true;
+    }
+  }
+
+  insertInterstitialsFromCuesMap(cuesMap, media);
+}
+
 async function initSessionOnMasterReq(session: Session) {
   let storeSession = false;
 
@@ -241,4 +272,20 @@ export function mapAdBreaksToSessionInterstitials(
   }
 
   return interstitials;
+}
+
+export async function formatLiveAssetList() {
+  const randNumber = Math.trunc(Math.random() * 100_000);
+  const assets = await getAssetsFromVast({
+    url: `https://pubads.g.doubleclick.net/gampad/ads?iu=/21775744923/external/single_ad_samples&sz=640x480&cust_params=sample_ct%3Dlinear&ciu_szs=300x250%2C728x90&gdfp_req=1&output=vast&unviewed_position_start=1&env=vp&impl=s&correlator=${randNumber}`,
+  });
+
+  return {
+    ASSETS: assets.map((asset) => {
+      return {
+        URI: asset.url,
+        DURATION: asset.duration,
+      };
+    }),
+  };
 }

@@ -33,12 +33,18 @@ export interface MediaInitializationSection {
   uri: string;
 }
 
+export interface CueOut {
+  duration: number;
+}
+
 export interface Segment {
   uri: string;
   duration: number;
   discontinuity?: boolean;
   map?: MediaInitializationSection;
   programDateTime?: DateTime;
+  cueOut?: CueOut;
+  cueIn?: boolean;
 }
 
 export type PlaylistType = "EVENT" | "VOD";
