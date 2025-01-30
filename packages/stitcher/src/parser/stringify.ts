@@ -116,6 +116,14 @@ export function stringifyMediaPlaylist(playlist: MediaPlaylist) {
       lines.push(`#EXT-X-DISCONTINUITY`);
     }
 
+    if (segment.spliceInfo) {
+      if (segment.spliceInfo.type === "IN") {
+        lines.push("#EXT-X-CUE-IN");
+      } else if (segment.spliceInfo.type === "OUT") {
+        lines.push(`#EXT-X-CUE-OUT:DURATION=${segment.spliceInfo.duration}`);
+      }
+    }
+
     if (segment.programDateTime) {
       lines.push(`#EXT-X-PROGRAM-DATE-TIME:${segment.programDateTime.toISO()}`);
     }

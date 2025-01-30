@@ -3,29 +3,22 @@ import * as uuid from "uuid";
 import { VASTClient } from "vast-client";
 import { api } from "./lib/api-client";
 import { resolveUri } from "./lib/url";
-import type { InterstitialAsset, InterstitialVast } from "./types";
+import type { Asset } from "./types";
 import type { VastAd, VastCreativeLinear, VastResponse } from "vast-client";
 
 const NAMESPACE_UUID_AD = "5b212a7e-d6a2-43bf-bd30-13b1ca1f9b13";
 
-export async function getAssetsFromVast(vast: InterstitialVast) {
+export async function getAssetsFromVastUrl(url: string) {
   const vastClient = new VASTClient();
-  let vastResponse: VastResponse | undefined;
+  const vastResponse = await vastClient.get(url);
+  return await mapVastResponseToAssets(vastResponse);
+}
 
-  if (vast.url) {
-    vastResponse = await vastClient.get(vast.url);
-  }
-
-  if (vast.data) {
-    const parser = new DOMParser();
-    const xml = parser.parseFromString(vast.data, "text/xml");
-    vastResponse = await vastClient.parseVAST(xml);
-  }
-
-  if (!vastResponse) {
-    return [];
-  }
-
+export async function getAssetsFromVastData(data: string) {
+  const vastClient = new VASTClient();
+  const parser = new DOMParser();
+  const xml = parser.parseFromString(data, "text/xml");
+  const vastResponse = await vastClient.parseVAST(xml);
   return await mapVastResponseToAssets(vastResponse);
 }
 
@@ -84,7 +77,7 @@ async function fetchAsset(id: string) {
   throw new Error(`Failed to fetch asset, got status ${status}`);
 }
 
-async function mapAdToAsset(ad: VastAd): Promise<InterstitialAsset | null> {
+async function mapAdToAsset(ad: VastAd): Promise<Asset | null> {
   const creative = getCreative(ad);
   if (!creative) {
     return null;
@@ -114,12 +107,11 @@ async function mapAdToAsset(ad: VastAd): Promise<InterstitialAsset | null> {
   return {
     url: url,
     duration: creative.duration,
-    kind: "ad",
   };
 }
 
 async function mapVastResponseToAssets(response: VastResponse) {
-  const assets: InterstitialAsset[] = [];
+  const assets: Asset[] = [];
 
   for (const ad of response.ads) {
     const asset = await mapAdToAsset(ad);

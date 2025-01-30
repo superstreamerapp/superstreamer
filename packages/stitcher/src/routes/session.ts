@@ -18,7 +18,7 @@ export const sessionRoutes = new Elysia()
 
       const filter = body.filter;
 
-      const { url } = createMasterUrl({
+      const url = createMasterUrl({
         url: session.url,
         filter,
         session,
@@ -39,23 +39,15 @@ export const sessionRoutes = new Elysia()
           t.Array(
             t.Object({
               time: t.Union([t.Number(), t.String()]),
-              duration: t.Optional(t.Number()),
+              maxDuration: t.Optional(t.Number()),
               assets: t.Optional(
                 t.Array(
                   t.Object({
                     uri: t.String(),
-                    kind: t.Optional(
-                      t.Union([t.Literal("ad"), t.Literal("bumper")]),
-                    ),
                   }),
                 ),
               ),
               vast: t.Optional(
-                t.Object({
-                  url: t.String(),
-                }),
-              ),
-              assetList: t.Optional(
                 t.Object({
                   url: t.String(),
                 }),
@@ -89,6 +81,16 @@ export const sessionRoutes = new Elysia()
             },
           ),
         ),
+        vast: t.Optional(
+          t.Object(
+            {
+              url: t.String(),
+            },
+            {
+              description: "Describes a VAST",
+            },
+          ),
+        ),
         expiry: t.Optional(
           t.Number({
             description:
@@ -101,35 +103,11 @@ export const sessionRoutes = new Elysia()
     },
   )
   .get(
-    "/session/:sessionId/master.m3u8",
-    async ({ set, params, query }) => {
-      const session = await getSession(params.sessionId);
-
-      const playlist = await formatMasterPlaylist({
-        origUrl: session.url,
-        session,
-        filter: query.fil,
-      });
-
-      set.headers["content-type"] = "application/vnd.apple.mpegurl";
-
-      return playlist;
-    },
-    {
-      params: t.Object({
-        sessionId: t.String(),
-      }),
-      query: t.Object({
-        fil: filterSchema,
-      }),
-    },
-  )
-  .get(
     "/out/master.m3u8",
     async ({ set, query }) => {
       const url = decrypt(query.eurl);
 
-      const session = query.sid ? await getSession(query.sid) : undefined;
+      const session = await getSession(query.sid);
 
       const playlist = await formatMasterPlaylist({
         origUrl: url,
@@ -147,7 +125,7 @@ export const sessionRoutes = new Elysia()
       },
       query: t.Object({
         eurl: t.String(),
-        sid: t.Optional(t.String()),
+        sid: t.String(),
         fil: filterSchema,
       }),
     },
@@ -155,7 +133,7 @@ export const sessionRoutes = new Elysia()
   .get(
     "/out/playlist.m3u8",
     async ({ set, query }) => {
-      const session = query.sid ? await getSession(query.sid) : undefined;
+      const session = await getSession(query.sid);
 
       const url = decrypt(query.eurl);
       const type = query.type;
@@ -172,8 +150,12 @@ export const sessionRoutes = new Elysia()
       },
       query: t.Object({
         eurl: t.String(),
-        sid: t.Optional(t.String()),
-        type: t.Optional(t.String()),
+        sid: t.String(),
+        type: t.Union([
+          t.Literal("video"),
+          t.Literal("audio"),
+          t.Literal("subtitles"),
+        ]),
       }),
     },
   )
@@ -185,7 +167,7 @@ export const sessionRoutes = new Elysia()
 
       const session = await getSession(sessionId);
 
-      return await formatAssetList(session, dateTime);
+      return await formatAssetList(session, dateTime, query.mdur);
     },
     {
       detail: {
@@ -194,6 +176,7 @@ export const sessionRoutes = new Elysia()
       query: t.Object({
         dt: t.String(),
         sid: t.String(),
+        mdur: t.Optional(t.Number()),
         _HLS_primary_id: t.Optional(t.String()),
       }),
     },

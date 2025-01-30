@@ -9,6 +9,7 @@ import type {
   PlaylistType,
   Rendition,
   Segment,
+  SpliceInfo,
   Variant,
 } from "./types";
 import type { DateTime } from "luxon";
@@ -91,10 +92,17 @@ function formatMediaPlaylist(tags: Tag[]): MediaPlaylist {
   let map: MediaInitializationSection | undefined;
   tags.forEach(([name, value], index) => {
     if (name === "EXT-X-MAP") {
+      // TODO: We might be better off passing on segments to |parseSegment| and look up
+      // the last valid map.
       map = value;
     }
 
-    if (isSegmentTag(name)) {
+    // TODO: When we have EXT-X-KEY support, we're better off passing a full list of segments
+    // to |parseSegment|, maybe?
+
+    // If we're not yet capturing for a specific segment and the tag belongs to a segment,
+    // mark this tag as the start of the segment.
+    if (segmentStart === -1 && isSegmentTag(name)) {
       segmentStart = index - 1;
     }
 
@@ -102,6 +110,7 @@ function formatMediaPlaylist(tags: Tag[]): MediaPlaylist {
       if (segmentStart < 0) {
         throw new Error("LITERAL: no segment start");
       }
+
       const segmentTags = tags.slice(segmentStart, index + 1);
       const uri = nextLiteral(segmentTags, segmentTags.length - 2);
 
@@ -141,11 +150,20 @@ function nextLiteral(tags: Tag[], index: number) {
   return value;
 }
 
+/**
+ * Checks whether the tag name belongs to a segment.
+ * @link https://datatracker.ietf.org/doc/html/draft-pantos-hls-rfc8216bis-16#section-4.4.4
+ * @param name
+ * @returns
+ */
 function isSegmentTag(name: Tag[0]) {
   switch (name) {
     case "EXTINF":
     case "EXT-X-DISCONTINUITY":
     case "EXT-X-PROGRAM-DATE-TIME":
+    case "EXT-X-MAP":
+    case "EXT-X-CUE-OUT":
+    case "EXT-X-CUE-IN":
       return true;
   }
   return false;
@@ -159,6 +177,7 @@ function parseSegment(
   let duration: number | undefined;
   let discontinuity: boolean | undefined;
   let programDateTime: DateTime | undefined;
+  let spliceInfo: SpliceInfo | undefined;
 
   tags.forEach(([name, value]) => {
     if (name === "EXTINF") {
@@ -170,6 +189,12 @@ function parseSegment(
     if (name === "EXT-X-PROGRAM-DATE-TIME") {
       programDateTime = value;
     }
+    if (name === "EXT-X-CUE-IN") {
+      spliceInfo = { type: "IN" };
+    }
+    if (name === "EXT-X-CUE-OUT") {
+      spliceInfo = { type: "OUT", duration: value.duration };
+    }
   });
 
   assert(duration, "parseSegment: duration not found");
@@ -180,6 +205,7 @@ function parseSegment(
     discontinuity,
     map,
     programDateTime,
+    spliceInfo,
   };
 }
 

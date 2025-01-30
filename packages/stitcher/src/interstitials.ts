@@ -1,32 +1,90 @@
-import { createUrl } from "./lib/url";
-import { getAssetsFromVast } from "./vast";
-import type { DateRange } from "./parser";
+import { DateTime } from "luxon";
+import { HashGroup } from "./lib/hash-group";
+import { createUrl, replaceUrlParams } from "./lib/url";
+import { getAssetsFromVastData, getAssetsFromVastUrl } from "./vast";
+import type { DateRange, Segment } from "./parser";
 import type { Session } from "./session";
-import type { Interstitial, InterstitialAsset } from "./types";
-import type { DateTime } from "luxon";
+import type { Asset } from "./types";
 
-export function getStaticDateRanges(session: Session, isLive: boolean) {
-  return session.interstitials.map<DateRange>((interstitial) => {
-    const startDate = interstitial.dateTime;
-    const assetListUrl = getAssetListUrl(interstitial, session);
+// An item describes what we'd like to collect for a particular date.
+interface DateGroupItem {
+  timelineStyle: "HIGHLIGHT" | "PRIMARY";
+  replaceContent: boolean;
+  maxDuration?: number;
+}
+
+export function getStaticDateRanges(
+  session: Session,
+  segments: Segment[],
+  isLive: boolean,
+) {
+  const dateGroup = new HashGroup<number, DateGroupItem>({
+    getDefaultValue: () => ({
+      timelineStyle: "PRIMARY",
+      replaceContent: isLive ? true : false,
+    }),
+  });
+
+  // Collect dateRanges from splice points.
+  for (const segment of segments) {
+    if (segment.spliceInfo?.type !== "OUT" || !segment.programDateTime) {
+      continue;
+    }
+
+    const key = segment.programDateTime.toMillis();
+    const item = dateGroup.get(key);
+
+    item.timelineStyle = "HIGHLIGHT";
+    item.maxDuration = segment.spliceInfo.duration;
+  }
+
+  // Collect dateRanges from each event defined in the session.
+  for (const event of session.events) {
+    const key = event.dateTime.toMillis();
+    const item = dateGroup.get(key);
+
+    if (event.vast) {
+      // If we resolved the event by a vast, we know it's an ad and can mark it
+      // as HIGHLIGHT on the timeline.
+      item.timelineStyle = "HIGHLIGHT";
+    }
+
+    if (
+      !event.maxDuration ||
+      (item.maxDuration && event.maxDuration > item.maxDuration)
+    ) {
+      // If we have a max duration for this event, we'll save it for this interstitial. Always takes the
+      // largest maxDuration across events.
+      item.maxDuration = event.maxDuration;
+    }
+  }
+
+  return dateGroup.toEntries().map<DateRange>(([key, item]) => {
+    const startDate = DateTime.fromMillis(key);
+
+    const assetListUrl = createUrl("out/asset-list.json", {
+      dt: startDate.toISO(),
+      sid: session.id,
+      mdur: item.maxDuration,
+    });
 
     const clientAttributes: Record<string, number | string> = {
       RESTRICT: "SKIP,JUMP",
       "ASSET-LIST": assetListUrl,
       "CONTENT-MAY-VARY": "YES",
       "TIMELINE-OCCUPIES": "POINT",
-      "TIMELINE-STYLE": getTimelineStyle(interstitial),
+      "TIMELINE-STYLE": item.timelineStyle,
     };
 
-    if (!isLive) {
+    if (!item.replaceContent) {
       clientAttributes["RESUME-OFFSET"] = 0;
     }
 
-    if (interstitial.duration) {
-      clientAttributes["PLAYOUT-LIMIT"] = interstitial.duration;
+    if (item.maxDuration !== undefined) {
+      clientAttributes["PLAYOUT-LIMIT"] = item.maxDuration;
     }
 
-    const cue: string[] = ["ONCE"];
+    const cue: string[] = [];
     if (startDate.equals(session.startTime)) {
       cue.push("PRE");
     }
@@ -44,71 +102,53 @@ export function getStaticDateRanges(session: Session, isLive: boolean) {
   });
 }
 
-export async function getAssets(session: Session, dateTime: DateTime) {
-  const interstitial = session.interstitials.find((interstitial) =>
-    interstitial.dateTime.equals(dateTime),
+export async function getAssets(
+  session: Session,
+  dateTime: DateTime,
+  maxDuration?: number,
+): Promise<Asset[]> {
+  // Filter all events for a particular dateTime, we'll need to transform these to
+  // a list of assets.
+  const events = session.events.filter((event) =>
+    event.dateTime.equals(dateTime),
   );
 
-  if (!interstitial) {
-    return [];
+  const assets: Asset[] = [];
+
+  for (const event of events) {
+    if (event.vast) {
+      const { url, data } = event.vast;
+
+      // The event contains a VAST url.
+      if (url) {
+        const vastUrl = replaceUrlParams(url, {
+          maxDuration,
+        });
+        const vastAssets = await getAssetsFromVastUrl(vastUrl);
+        assets.push(...vastAssets);
+      }
+
+      // The event contains inline VAST data.
+      if (data) {
+        const vastAssets = await getAssetsFromVastData(data);
+        assets.push(...vastAssets);
+      }
+    }
+
+    // The event contains a list of assets, explicitly defined.
+    if (event.assets) {
+      assets.push(...event.assets);
+    }
   }
 
-  const assets: InterstitialAsset[] = [];
-
-  for (const chunk of interstitial.chunks) {
-    if (chunk.type === "vast") {
-      const nextAssets = await getAssetsFromVast(chunk.data);
-      assets.push(...nextAssets);
-    }
-    if (chunk.type === "asset") {
-      assets.push(chunk.data);
-    }
+  // If we have a generic vast config on our session, use that one to resolve (eg; for live streams)
+  if (session.vast?.url) {
+    const vastUrl = replaceUrlParams(session.vast.url, {
+      maxDuration,
+    });
+    const tempAssets = await getAssetsFromVastUrl(vastUrl);
+    assets.push(...tempAssets);
   }
 
   return assets;
-}
-
-export function mergeInterstitials(
-  source: Interstitial[],
-  interstitials: Interstitial[],
-) {
-  for (const interstitial of interstitials) {
-    const target = source.find((item) =>
-      item.dateTime.equals(interstitial.dateTime),
-    );
-
-    if (!target) {
-      source.push(interstitial);
-    } else {
-      // If we found a source for the particular dateTime, we push the
-      // other chunks at the end.
-      target.chunks.push(...interstitial.chunks);
-    }
-  }
-}
-
-function getAssetListUrl(interstitial: Interstitial, session?: Session) {
-  const assetListChunks = interstitial.chunks.filter(
-    (chunk) => chunk.type === "assetList",
-  );
-  if (assetListChunks.length === 1 && assetListChunks[0]) {
-    return assetListChunks[0].data.url;
-  }
-
-  return createUrl("out/asset-list.json", {
-    dt: interstitial.dateTime.toISO(),
-    sid: session?.id,
-  });
-}
-
-function getTimelineStyle(interstitial: Interstitial) {
-  for (const chunk of interstitial.chunks) {
-    if (chunk.type === "asset" && chunk.data.kind === "ad") {
-      return "HIGHLIGHT";
-    }
-    if (chunk.type === "vast") {
-      return "HIGHLIGHT";
-    }
-  }
-  return "PRIMARY";
 }

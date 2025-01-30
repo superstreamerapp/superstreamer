@@ -39,6 +39,12 @@ export interface Segment {
   discontinuity?: boolean;
   map?: MediaInitializationSection;
   programDateTime?: DateTime;
+  spliceInfo?: SpliceInfo;
+}
+
+export interface SpliceInfo {
+  type: "IN" | "OUT";
+  duration?: number;
 }
 
 export type PlaylistType = "EVENT" | "VOD";

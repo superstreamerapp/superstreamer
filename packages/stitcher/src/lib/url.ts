@@ -65,3 +65,23 @@ export function createUrl(
 ) {
   return buildUrl(`${env.PUBLIC_STITCHER_ENDPOINT}/${path}`, params);
 }
+
+export function replaceUrlParams(
+  url: string,
+  params?: Record<string, string | number | undefined>,
+) {
+  const allParams = {
+    ...params,
+    // Default params defined below.
+    random: Math.floor(Math.random() * 10_000),
+  };
+
+  Object.entries(allParams).forEach(([key, value]) => {
+    if (value === undefined) {
+      return;
+    }
+    url = url.replaceAll(`{${key}}`, value.toString());
+  });
+
+  return url;
+}

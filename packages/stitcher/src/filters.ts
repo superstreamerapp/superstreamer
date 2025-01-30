@@ -8,7 +8,7 @@ export interface Filter {
 
 export function formatFilterToQueryParam(filter?: Filter) {
   if (!filter) {
-    return undefined;
+    filter = {};
   }
   return btoa(JSON.stringify(filter));
 }

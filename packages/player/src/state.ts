@@ -36,6 +36,7 @@ interface StateProperties {
   volume: number;
   seeking: boolean;
   cuePoints: number[];
+  live: boolean;
 }
 
 const noState: StateProperties = {
@@ -52,6 +53,7 @@ const noState: StateProperties = {
   volume: 1,
   seeking: false,
   cuePoints: [],
+  live: false,
 };
 
 export class State implements StateProperties {
@@ -61,10 +63,11 @@ export class State implements StateProperties {
     this.requestTimingSync();
   }
 
-  setReady() {
+  setReady(live: boolean) {
     if (this.ready) {
       return;
     }
+    this.live = live;
     this.ready = true;
     this.requestTimingSync();
     this.params_.onEvent(Events.READY);
@@ -241,6 +244,7 @@ export class State implements StateProperties {
   volume = noState.volume;
   seeking = noState.seeking;
   cuePoints = noState.cuePoints;
+  live = noState.live;
 }
 
 export function getState<N extends keyof StateProperties>(

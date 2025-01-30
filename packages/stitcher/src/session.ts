@@ -1,63 +1,76 @@
 import { randomUUID } from "crypto";
 import { DateTime } from "luxon";
 import { kv } from "./adapters/kv";
-import { mergeInterstitials } from "./interstitials";
 import { JSON } from "./lib/json";
 import { resolveUri } from "./lib/url";
-import type { Interstitial, InterstitialChunk } from "./types";
-import type { VmapParams } from "./vmap";
+import { fetchDuration } from "./playlist";
+import type { TimedEvent } from "./types";
 
 export interface Session {
   id: string;
   url: string;
   expiry: number;
+
   startTime: DateTime;
 
-  // User defined options
-  vmap?: VmapParams;
-  interstitials: Interstitial[];
+  vmap?: {
+    url: string;
+    // TODO: This is currently an object, but we might want to keep VMAP specific info
+    // later, which we can do here.
+    result?: object;
+  };
+  vast?: {
+    url?: string;
+  };
+  events: TimedEvent[];
 }
 
-interface SessionInterstitial {
-  time: number | string;
-  duration?: number;
+interface InterstitialParam {
+  time: string | number;
+  maxDuration?: number;
   assets?: {
     uri: string;
-    kind?: "ad" | "bumper";
   }[];
   vast?: {
-    url: string;
-  };
-  assetList?: {
-    url: string;
+    url?: string;
   };
 }
 
 export async function createSession(params: {
   uri: string;
-  vmap?: VmapParams;
-  interstitials?: SessionInterstitial[];
+  vmap?: {
+    url: string;
+  };
+  vast?: {
+    url?: string;
+  };
+  interstitials?: InterstitialParam[];
   expiry?: number;
 }) {
   const id = randomUUID();
   const startTime = DateTime.now();
+  const url = resolveUri(params.uri);
 
   const session: Session = {
     id,
-    url: resolveUri(params.uri),
-    vmap: params.vmap,
-    startTime,
-    interstitials: [],
+    url,
     // A session is valid for 3 hours by default.
     expiry: params.expiry ?? 60 * 60 * 3,
+
+    startTime,
+
+    vmap: params.vmap,
+    vast: params.vast,
+    events: [],
   };
 
   if (params.interstitials) {
-    const interstitials = mapSessionInterstitials(
-      startTime,
-      params.interstitials,
+    const events = await Promise.all(
+      params.interstitials.map((interstitial) =>
+        mapInterstitialToTimedEvent(startTime, interstitial),
+      ),
     );
-    mergeInterstitials(session.interstitials, interstitials);
+    session.events.push(...events);
   }
 
   const value = JSON.stringify(session);
@@ -79,47 +92,35 @@ export async function updateSession(session: Session) {
   await kv.set(`session:${session.id}`, value, session.expiry);
 }
 
-function mapSessionInterstitials(
+export async function mapInterstitialToTimedEvent(
   startTime: DateTime,
-  interstitials: SessionInterstitial[],
+  interstitial: InterstitialParam,
 ) {
-  const result: Interstitial[] = [];
+  const dateTime =
+    typeof interstitial.time === "string"
+      ? DateTime.fromISO(interstitial.time)
+      : startTime.plus({ seconds: interstitial.time });
 
-  for (const interstitial of interstitials) {
-    const dateTime =
-      typeof interstitial.time === "string"
-        ? DateTime.fromISO(interstitial.time)
-        : startTime.plus({ seconds: interstitial.time });
+  const event: TimedEvent = {
+    dateTime,
+    maxDuration: interstitial.maxDuration,
+  };
 
-    const chunks: InterstitialChunk[] = [];
-
-    if (interstitial.assets) {
-      for (const asset of interstitial.assets) {
-        const { uri, ...rest } = asset;
-        chunks.push({
-          type: "asset",
-          data: {
-            url: resolveUri(uri),
-            ...rest,
-          },
-        });
-      }
-    }
-
-    if (interstitial.vast) {
-      chunks.push({ type: "vast", data: interstitial.vast });
-    }
-
-    if (interstitial.assetList) {
-      chunks.push({ type: "assetList", data: interstitial.assetList });
-    }
-
-    result.push({
-      dateTime,
-      duration: interstitial.duration,
-      chunks,
-    });
+  // The interstitial contains one or more assets.
+  if (interstitial.assets) {
+    event.assets = await Promise.all(
+      interstitial.assets.map(async (asset) => {
+        const url = resolveUri(asset.uri);
+        return {
+          url,
+          duration: await fetchDuration(url),
+        };
+      }),
+    );
   }
 
-  return result;
+  // The interstitial contains a vast config, pass it on.
+  event.vast = interstitial.vast;
+
+  return event;
 }

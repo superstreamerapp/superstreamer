@@ -1,12 +1,8 @@
 import { assert } from "shared/assert";
 import { filterMasterPlaylist, formatFilterToQueryParam } from "./filters";
-import {
-  getAssets,
-  getStaticDateRanges,
-  mergeInterstitials,
-} from "./interstitials";
+import { getAssets, getStaticDateRanges } from "./interstitials";
 import { encrypt } from "./lib/crypto";
-import { createUrl, joinUrl, resolveUri } from "./lib/url";
+import { createUrl, joinUrl, replaceUrlParams } from "./lib/url";
 import {
   parseMasterPlaylist,
   parseMediaPlaylist,
@@ -18,18 +14,16 @@ import { fetchVmap, toAdBreakTimeOffset } from "./vmap";
 import type { Filter } from "./filters";
 import type { MasterPlaylist, MediaPlaylist } from "./parser";
 import type { Session } from "./session";
-import type { Interstitial } from "./types";
+import type { TimedEvent } from "./types";
 import type { VmapAdBreak } from "./vmap";
 import type { DateTime } from "luxon";
 
 export async function formatMasterPlaylist(params: {
   origUrl: string;
-  session?: Session;
+  session: Session;
   filter?: Filter;
 }) {
-  if (params.session) {
-    await initSessionOnMasterReq(params.session);
-  }
+  await initSessionOnMasterReq(params.session);
 
   const master = await fetchMasterPlaylist(params.origUrl);
 
@@ -44,48 +38,47 @@ export async function formatMasterPlaylist(params: {
 
 export async function formatMediaPlaylist(
   mediaUrl: string,
-  session?: Session,
-  renditionType?: string,
+  session: Session,
+  type: "video" | "audio" | "subtitles",
 ) {
   const media = await fetchMediaPlaylist(mediaUrl);
 
-  // We're in a video playlist when we have no renditionType passed along,
-  // this means it does not belong to EXT-X-MEDIA.
-  const videoPlaylist = renditionType === undefined;
   const firstSegment = media.segments[0];
+  assert(firstSegment);
 
-  if (session) {
-    assert(firstSegment);
-
-    if (media.endlist) {
-      firstSegment.programDateTime = session.startTime;
-    }
-
-    if (videoPlaylist) {
-      // If we have an endlist and a PDT, we can add static date ranges based on this.
-      const isLive = !media.endlist;
-      media.dateRanges = getStaticDateRanges(session, isLive);
-    }
+  if (media.endlist) {
+    firstSegment.programDateTime = session.startTime;
   }
+
+  // Apply dateRanges to each video playlist.
+  if (type === "video") {
+    // If we have an endlist and a PDT, we can add static date ranges based on this.
+    const isLive = !media.endlist;
+
+    media.dateRanges = getStaticDateRanges(session, media.segments, isLive);
+  }
+
+  rewriteSpliceInfoSegments(media);
 
   rewriteMediaPlaylistUrls(media, mediaUrl);
 
   return stringifyMediaPlaylist(media);
 }
 
-export async function formatAssetList(session: Session, dateTime: DateTime) {
-  const assets = await getAssets(session, dateTime);
-
-  const assetsPromises = assets.map(async (asset) => {
-    return {
-      URI: asset.url,
-      DURATION: asset.duration ?? (await fetchDuration(asset.url)),
-      "SPRS-KIND": asset.kind,
-    };
-  });
+export async function formatAssetList(
+  session: Session,
+  dateTime: DateTime,
+  maxDuration?: number,
+) {
+  const assets = await getAssets(session, dateTime, maxDuration);
 
   return {
-    ASSETS: await Promise.all(assetsPromises),
+    ASSETS: assets.map((asset) => {
+      return {
+        URI: asset.url,
+        DURATION: asset.duration,
+      };
+    }),
   };
 }
 
@@ -101,8 +94,7 @@ async function fetchMediaPlaylist(url: string) {
   return parseMediaPlaylist(result);
 }
 
-export async function fetchDuration(uri: string) {
-  const url = resolveUri(uri);
+export async function fetchDuration(url: string) {
   const variant = (await fetchMasterPlaylist(url))?.variants[0];
 
   if (!variant) {
@@ -118,30 +110,24 @@ export async function fetchDuration(uri: string) {
 
 export function createMasterUrl(params: {
   url: string;
+  session: Session;
   filter?: Filter;
-  session?: Session;
 }) {
   const fil = formatFilterToQueryParam(params.filter);
 
-  const outUrl = createUrl("out/master.m3u8", {
+  const url = createUrl("out/master.m3u8", {
     eurl: encrypt(params.url),
-    sid: params.session?.id,
+    sid: params.session.id,
     fil,
   });
 
-  const url = params.session
-    ? createUrl(`session/${params.session.id}/master.m3u8`, {
-        fil,
-      })
-    : undefined;
-
-  return { url, outUrl };
+  return url;
 }
 
 function createMediaUrl(params: {
   url: string;
-  sessionId?: string;
-  type?: "AUDIO" | "SUBTITLES";
+  sessionId: string;
+  type: "video" | "audio" | "subtitles";
 }) {
   return createUrl("out/playlist.m3u8", {
     eurl: encrypt(params.url),
@@ -154,14 +140,15 @@ export function rewriteMasterPlaylistUrls(
   master: MasterPlaylist,
   params: {
     origUrl: string;
-    session?: Session;
+    session: Session;
   },
 ) {
   for (const variant of master.variants) {
     const url = joinUrl(params.origUrl, variant.uri);
     variant.uri = createMediaUrl({
       url,
-      sessionId: params.session?.id,
+      sessionId: params.session.id,
+      type: "video",
     });
   }
 
@@ -169,11 +156,24 @@ export function rewriteMasterPlaylistUrls(
     if (!rendition.uri) {
       continue;
     }
+
     const url = joinUrl(params.origUrl, rendition.uri);
+
+    let type: "audio" | "subtitles" | undefined;
+    if (rendition.type === "AUDIO") {
+      type = "audio";
+    } else if (rendition.type === "SUBTITLES") {
+      type = "subtitles";
+    }
+
+    if (!type) {
+      continue;
+    }
+
     rendition.uri = createMediaUrl({
       url,
-      sessionId: params.session?.id,
-      type: rendition.type,
+      sessionId: params.session.id,
+      type,
     });
   }
 }
@@ -190,19 +190,37 @@ export function rewriteMediaPlaylistUrls(
   });
 }
 
+/**
+ * Go over each segment in a media playlist and swap the splice info for a discontinuity.
+ * @param media
+ */
+export function rewriteSpliceInfoSegments(media: MediaPlaylist) {
+  media.segments.forEach((segment) => {
+    if (segment.spliceInfo) {
+      delete segment.spliceInfo;
+      segment.discontinuity = true;
+    }
+  });
+}
+
 async function initSessionOnMasterReq(session: Session) {
   let storeSession = false;
 
-  if (session.vmap) {
-    const vmap = await fetchVmap(session.vmap);
+  // If we have a vmap config but no result yet, we'll resolve it.
+  if (session.vmap && !session.vmap.result) {
+    const vmapUrl = replaceUrlParams(session.vmap.url);
+    const vmap = await fetchVmap(vmapUrl);
 
-    delete session.vmap;
+    // Store an empty object, if we want vmap specific info to be stored
+    // across sessions later, we can do it here, such as tracking pixels.
+    session.vmap.result = {};
 
-    const interstitials = mapAdBreaksToSessionInterstitials(
-      session,
-      vmap.adBreaks,
-    );
-    mergeInterstitials(session.interstitials, interstitials);
+    vmap.adBreaks.forEach((adBreak) => {
+      const event = mapAdBreakToTimedEvent(session.startTime, adBreak);
+      if (event) {
+        session.events.push(event);
+      }
+    });
 
     storeSession = true;
   }
@@ -212,33 +230,23 @@ async function initSessionOnMasterReq(session: Session) {
   }
 }
 
-export function mapAdBreaksToSessionInterstitials(
-  session: Session,
-  adBreaks: VmapAdBreak[],
-) {
-  const interstitials: Interstitial[] = [];
+export function mapAdBreakToTimedEvent(
+  startTime: DateTime,
+  adBreak: VmapAdBreak,
+): TimedEvent | null {
+  const timeOffset = toAdBreakTimeOffset(adBreak);
 
-  for (const adBreak of adBreaks) {
-    const timeOffset = toAdBreakTimeOffset(adBreak);
-
-    if (timeOffset === null) {
-      continue;
-    }
-
-    const dateTime = session.startTime.plus({ seconds: timeOffset });
-
-    interstitials.push({
-      dateTime,
-      // We're going to push a single chunk here and have them merged before
-      // we return the full list of interstitials.
-      chunks: [
-        {
-          type: "vast",
-          data: { url: adBreak.vastUrl, data: adBreak.vastData },
-        },
-      ],
-    });
+  if (timeOffset === null) {
+    return null;
   }
 
-  return interstitials;
+  const dateTime = startTime.plus({ seconds: timeOffset });
+
+  return {
+    dateTime,
+    vast: {
+      url: adBreak.vastUrl,
+      data: adBreak.vastData,
+    },
+  };
 }
