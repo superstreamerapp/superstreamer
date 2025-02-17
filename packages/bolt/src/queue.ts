@@ -4,8 +4,7 @@ import type { Input, PartialInput, PartialStream, Stream } from "./types";
 import type { ConnectionOptions } from "bullmq";
 
 const connection: ConnectionOptions = {
-  host: env.REDIS_HOST,
-  port: env.REDIS_PORT,
+  url: env.REDIS_URL,
 };
 
 export interface PipelineData {
@@ -73,13 +72,13 @@ export const ffprobeQueue = new Queue<FfprobeData>("ffprobe", {
 
 export type OutcomeData =
   | {
-      type: "transcode";
-      data: TranscodeData;
-    }
+    type: "transcode";
+    data: TranscodeData;
+  }
   | {
-      type: "package";
-      data: PackageData;
-    };
+    type: "package";
+    data: PackageData;
+  };
 
 export const outcomeQueue = new Queue<OutcomeData>("outcome", {
   connection,

@@ -7,8 +7,7 @@ import type { ConnectionOptions, Job } from "bullmq";
 export type { WorkerDir } from "./lib/worker-dir";
 
 const connection: ConnectionOptions = {
-  host: env.REDIS_HOST,
-  port: env.REDIS_PORT,
+  url: env.REDIS_URL,
 };
 
 export function runWorkers(

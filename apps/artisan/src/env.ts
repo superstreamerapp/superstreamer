@@ -2,8 +2,7 @@ import { z } from "zod";
 
 export const env = z
   .object({
-    REDIS_HOST: z.string(),
-    REDIS_PORT: z.coerce.number(),
+    REDIS_URL: z.string(),
     S3_ENDPOINT: z.string(),
     S3_REGION: z.string(),
     S3_ACCESS_KEY: z.string(),

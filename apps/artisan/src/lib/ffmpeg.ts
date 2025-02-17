@@ -3,6 +3,7 @@ import { getBinaryPath } from "./file-helpers";
 
 const ffprobeBin = await getBinaryPath("ffprobe");
 
+console.log("ffprobeBin", ffprobeBin);
 fluent.setFfprobePath(ffprobeBin);
 
 export async function ffprobe(input: string) {

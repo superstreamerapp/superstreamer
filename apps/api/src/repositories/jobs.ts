@@ -13,8 +13,7 @@ import type { JobNode, JobState, Queue } from "bullmq";
 
 const flowProducer = new FlowProducer({
   connection: {
-    host: env.REDIS_HOST,
-    port: env.REDIS_PORT,
+    url: env.REDIS_URL,
   },
 });
 
