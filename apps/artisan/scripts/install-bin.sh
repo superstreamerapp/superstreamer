@@ -2,7 +2,7 @@
 set -euo pipefail
 
 platform=$(uname -ms)
-
+echo "Detected platform: $platform"
 Color_Off=''
 Red=''
 Green=''
@@ -29,6 +29,9 @@ success() {
 }
 
 case $platform in
+'MINGW64_NT-10.0-26100 x86_64')
+    target=win32-x64
+    ;;
 'Darwin x86_64')
     target=darwin-x64
     ;;
@@ -60,7 +63,7 @@ install_ffmpeg () {
 
     info "Downloading ffmpeg from \"$ffmpeg_uri\""
 
-    ffmpeg_exe=$bin_dir/ffmpeg.gz
+    ffmpeg_exe=$bin_dir/ffmpeg.exe.gz
     curl --fail --location --progress-bar --output "$ffmpeg_exe" "$ffmpeg_uri" ||
         error "Failed to download ffmpeg from \"$ffmpeg_uri\""
 
@@ -74,7 +77,7 @@ install_ffprobe () {
 
     info "Downloading ffprob from \"$ffprobe_uri\""
 
-    ffprobe_exe=$bin_dir/ffprobe.gz
+    ffprobe_exe=$bin_dir/ffprobe.exe.gz
     curl --fail --location --progress-bar --output "$ffprobe_exe" "$ffprobe_uri" ||
         error "Failed to download ffprobe from \"$ffprobe_uri\""
 
@@ -87,6 +90,8 @@ install_packager () {
     packager_target=$target
     if [ "$packager_target" == "darwin-x64" ]; then
         packager_target=osx-x64
+    elif [ "$packager_target" == "win32-x64" ]; then
+        packager_target="win-x64.exe"
     elif [ "$packager_target" == "darwin-arm64" ]; then
         packager_target=osx-arm64
     fi
@@ -99,6 +104,7 @@ install_packager () {
     curl --fail --location --progress-bar --output "$packager_exe" "$packager_uri" ||
         error "Failed to download packager from \"$packager_uri\""
 
+    sleep 5m
     success "Downloaded packager"
 }
 

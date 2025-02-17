@@ -10,8 +10,7 @@ import type { RedisClientType } from "redis";
 const runtimeKey = getRuntimeKey();
 
 const envSchema = z.object({
-  REDIS_HOST: z.string().optional(),
-  REDIS_PORT: z.coerce.number().optional(),
+  REDIS_URL: z.string().optional(),
   PUBLIC_S3_ENDPOINT: z.string(),
   PUBLIC_STITCHER_ENDPOINT: z.string(),
   PUBLIC_API_ENDPOINT: z.string().optional(),
@@ -82,8 +81,7 @@ async function createKv(
   if (!redisClient) {
     redisClient = createClient({
       socket: {
-        host: env.REDIS_HOST,
-        port: env.REDIS_PORT,
+        url: env.REDIS_URL
       },
     });
 
