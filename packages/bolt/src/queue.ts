@@ -4,8 +4,7 @@ import type { Input, PartialInput, PartialStream, Stream } from "./types";
 import type { ConnectionOptions } from "bullmq";
 
 const connection: ConnectionOptions = {
-  host: env.REDIS_HOST,
-  port: env.REDIS_PORT,
+  url: env.REDIS_URI,
 };
 
 export interface PipelineData {
