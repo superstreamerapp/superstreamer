@@ -3,7 +3,7 @@ import { $ } from "bun";
 export async function buildClientPackages(options?: { exclude: string[] }) {
   let packageNames = [
     // Build player for app.
-    "@superstreamer/player",
+    "player",
   ];
 
   if (options?.exclude) {
@@ -12,9 +12,12 @@ export async function buildClientPackages(options?: { exclude: string[] }) {
     );
   }
 
-  await Promise.all(
-    packageNames.map((name) => {
-      return $`bun run --filter="${name}" build`;
-    }),
-  );
+  for (const packageName of packageNames) {
+    console.log(`👷 package [${packageName}] building`);
+    await $`bun run --filter="@superstreamer/${packageName}" build`;
+    console.log(`✅ package [${packageName}]`);
+    if (packageName !== packageNames[packageNames.length - 1]) {
+      console.log("");
+    }
+  }
 }
