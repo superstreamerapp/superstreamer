@@ -134,6 +134,14 @@ function sidebarGuide() {
               link: "media-transcode-package",
             },
             {
+              text: "Subtitles",
+              link: "media-subtitles",
+            },
+            {
+              text: "Audio (lang, 5.1)",
+              link: "media-audio",
+            },
+            {
               text: "Storage",
               link: "media-storage",
             },

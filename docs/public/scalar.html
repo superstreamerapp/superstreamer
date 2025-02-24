@@ -8,7 +8,25 @@
 
       ref.dataset.url = params.url;
       ref.dataset.configuration = JSON.stringify(params.config);
+
+      if (params.noScroll) {
+        document.body.style.overflow = "hidden";
+      }
     </script>
     <script src="https://cdn.jsdelivr.net/npm/@scalar/api-reference@1.25.110/dist/browser/standalone.min.js"></script>
+    <script>
+      let height_;
+      setInterval(() => {
+        if (height_ === document.body.scrollHeight) {
+          return;
+        }
+        height_ = document.body.scrollHeight;
+        const message = JSON.stringify({
+          type: "scalar:height",
+          height: height_,
+        });
+        window.parent.postMessage(message, "*");
+      });
+    </script>
   </body>
 </html>

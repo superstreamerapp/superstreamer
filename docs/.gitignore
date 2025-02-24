@@ -1,3 +1,4 @@
 .vitepress/dist
 .vitepress/cache
 .vitepress/config.mts.ts.timestamp*
+bun.lockb

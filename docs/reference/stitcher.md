@@ -1,18 +1,4 @@
 ---
-layout: api-docs
+layout: scalar
+spec: https://superstreamer.xyz/openapi-stitcher.json
 ---
-
-<script setup  lang="ts">
-import { ApiReference } from "@scalar/api-reference";
-import "@scalar/api-reference/style.css";
-</script>
-
-
-<ApiReference
-  :configuration="{
-    spec: {
-      url: 'https://superstreamer.xyz/openapi-stitcher.json'
-    },
-    hideTestRequestButton: true
-  }" 
-/>
