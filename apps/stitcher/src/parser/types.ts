@@ -30,6 +30,7 @@ export interface MasterPlaylist {
   independentSegments?: boolean;
   variants: Variant[];
   renditions: Rendition[];
+  defines: Define[];
 }
 
 export interface MediaInitializationSection {
@@ -70,6 +71,7 @@ export interface MediaPlaylist {
   mediaSequenceBase?: number;
   discontinuitySequenceBase?: number;
   dateRanges: DateRange[];
+  defines: Define[];
 }
 
 export interface DateRange {
@@ -79,4 +81,11 @@ export interface DateRange {
   duration?: number;
   plannedDuration?: number;
   clientAttributes?: Record<string, string | number>;
+}
+
+export interface Define {
+  name?: string;
+  value?: string;
+  queryParam?: string;
+  import?: string;
 }

@@ -5,7 +5,7 @@ import { JSON } from "./lib/json";
 import { resolveUri } from "./lib/url";
 import { fetchDuration, pushTimedEvent } from "./playlist";
 import type { AppContext } from "./app-context";
-import type { TimedEvent } from "./types";
+import type { Asset, Define, TimedEvent } from "./types";
 
 export interface Session {
   id: string;
@@ -25,6 +25,7 @@ export interface Session {
   };
 
   timedEvents: TimedEvent[];
+  defines: Define[];
 }
 
 interface InterstitialInput {
@@ -39,10 +40,16 @@ interface InterstitialInput {
   };
 }
 
+interface DefineInput {
+  name: string;
+  value?: string;
+}
+
 interface CreateSessionParams {
   uri: string;
   expiry: number;
   interstitials: InterstitialInput[];
+  defines: DefineInput[];
   vmap?: {
     url: string;
   };
@@ -67,6 +74,7 @@ export async function createSession(
     vmap: params.vmap,
     vast: params.vast,
     timedEvents: [],
+    defines: params.defines,
   };
 
   if (params.interstitials) {
@@ -113,21 +121,22 @@ export async function mapInterstitialToTimedEvent(
   startTime: DateTime,
   interstitial: InterstitialInput,
 ): Promise<TimedEvent> {
+  let assets: Asset[] | undefined;
+  if (interstitial.assets) {
+    assets = [];
+    for (const asset of interstitial.assets) {
+      const url = resolveUri(context, asset.uri);
+      assets.push({
+        url,
+        duration: await fetchDuration(url),
+      });
+    }
+  }
   return {
     dateTime: toDateTime(startTime, interstitial.time),
     duration: interstitial.duration,
     delay: interstitial.delay,
-    assets: interstitial.assets
-      ? await Promise.all(
-          interstitial.assets.map(async (asset) => {
-            const url = resolveUri(context, asset.uri);
-            return {
-              url,
-              duration: await fetchDuration(url),
-            };
-          }),
-        )
-      : undefined,
+    assets,
     vast: interstitial.vast,
   };
 }

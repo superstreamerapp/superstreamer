@@ -32,6 +32,8 @@ export async function formatMasterPlaylist(
     filterMasterPlaylist(master, filter);
   }
 
+  addMasterPlaylistDefines(session, master);
+
   rewriteMasterPlaylistUrls(context, session, url, master);
 
   return stringifyMasterPlaylist(master);
@@ -184,6 +186,27 @@ export function rewriteMasterPlaylistUrls(
     }
 
     rendition.uri = createMediaUrl(context, session, renditionUrl, type);
+  }
+}
+
+export function addMasterPlaylistDefines(
+  session: Session,
+  master: MasterPlaylist,
+) {
+  for (const def of session.defines) {
+    if (def.name && def.value !== undefined) {
+      // name + value
+      master.defines.push({
+        name: def.name,
+        value: def.value,
+      });
+    }
+    if (def.name && def.value === undefined) {
+      // queryparam
+      master.defines.push({
+        queryParam: def.name,
+      });
+    }
   }
 }
 

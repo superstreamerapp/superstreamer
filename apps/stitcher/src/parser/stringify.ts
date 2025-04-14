@@ -15,6 +15,21 @@ export function stringifyMasterPlaylist(playlist: MasterPlaylist) {
     lines.push("#EXT-X-INDEPENDENT-SEGMENTS");
   }
 
+  playlist.defines.forEach((define) => {
+    const attrs = [];
+    if (define.name) {
+      attrs.push(`NAME="${define.name}"`);
+      attrs.push(`VALUE="${define.value}"`);
+    }
+    if (define.queryParam) {
+      attrs.push(`QUERYPARAM="${define.queryParam}"`);
+    }
+    if (define.import) {
+      attrs.push(`IMPORT="${define.import}"`);
+    }
+    lines.push(`#EXT-X-DEFINE:${attrs.join(",")}`);
+  });
+
   playlist.renditions.forEach((rendition) => {
     const attrs = [
       `TYPE=${rendition.type}`,
@@ -90,6 +105,21 @@ export function stringifyMediaPlaylist(playlist: MediaPlaylist) {
     "#EXT-X-VERSION:8",
     `#EXT-X-TARGETDURATION:${playlist.targetDuration}`,
   );
+
+  playlist.defines.forEach((define) => {
+    const attrs = [];
+    if (define.name) {
+      attrs.push(`NAME="${define.name}"`);
+      attrs.push(`VALUE="${define.value}"`);
+    }
+    if (define.queryParam) {
+      attrs.push(`QUERYPARAM="${define.queryParam}"`);
+    }
+    if (define.import) {
+      attrs.push(`IMPORT="${define.import}"`);
+    }
+    lines.push(`#EXT-X-DEFINE:${attrs.join(",")}`);
+  });
 
   if (playlist.independentSegments) {
     lines.push("#EXT-X-INDEPENDENT-SEGMENTS");

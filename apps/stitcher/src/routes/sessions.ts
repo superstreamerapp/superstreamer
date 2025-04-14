@@ -108,6 +108,18 @@ export const sessionsApp = new Hono()
             description:
               "Generic VAST configuration, typically used for live where ad signaling is used to replace linear breaks.",
           }),
+        defines: z
+          .array(
+            z.object({
+              name: z.string(),
+              value: z.string().optional(),
+            }),
+          )
+          .default([])
+          .openapi({
+            description:
+              "Variables to be imported, when no value is provided, will be derived from query",
+          }),
         expiry: z.number().default(60 * 60 * 12),
       }),
     ),

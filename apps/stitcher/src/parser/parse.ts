@@ -3,6 +3,7 @@ import { lexicalParse } from "./lexical-parse";
 import type { Tag } from "./lexical-parse";
 import type {
   DateRange,
+  Define,
   Key,
   MasterPlaylist,
   MediaInitializationSection,
@@ -19,6 +20,7 @@ function formatMasterPlaylist(tags: Tag[]): MasterPlaylist {
   let independentSegments = false;
   const variants: Variant[] = [];
   const renditions: Rendition[] = [];
+  const defines: Define[] = [];
 
   tags.forEach(([name, value], index) => {
     if (name === "EXT-X-INDEPENDENT-SEGMENTS") {
@@ -48,12 +50,21 @@ function formatMasterPlaylist(tags: Tag[]): MasterPlaylist {
         subtitles: value.subtitles,
       });
     }
+    if (name === "EXT-X-DEFINE") {
+      defines.push({
+        name: value.name,
+        value: value.value,
+        queryParam: value.queryParam,
+        import: value.import,
+      });
+    }
   });
 
   return {
     independentSegments,
     variants,
     renditions,
+    defines,
   };
 }
 
@@ -65,6 +76,7 @@ function formatMediaPlaylist(tags: Tag[]): MediaPlaylist {
   let mediaSequenceBase: number | undefined;
   let discontinuitySequenceBase: number | undefined;
   const dateRanges: DateRange[] = [];
+  const defines: Define[] = [];
 
   tags.forEach(([name, value]) => {
     if (name === "EXT-X-TARGETDURATION") {
@@ -87,6 +99,14 @@ function formatMediaPlaylist(tags: Tag[]): MediaPlaylist {
     }
     if (name === "EXT-X-DATERANGE") {
       dateRanges.push(value);
+    }
+    if (name === "EXT-X-DEFINE") {
+      defines.push({
+        name: value.name,
+        value: value.value,
+        queryParam: value.queryParam,
+        import: value.import,
+      });
     }
   });
 
@@ -142,6 +162,7 @@ function formatMediaPlaylist(tags: Tag[]): MediaPlaylist {
     mediaSequenceBase,
     discontinuitySequenceBase,
     dateRanges,
+    defines,
   };
 }
 

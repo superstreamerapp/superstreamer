@@ -26,3 +26,8 @@ export interface TimedEvent {
 export interface VmapParams {
   url: string;
 }
+
+export interface Define {
+  name: string;
+  value?: string;
+}

@@ -3,6 +3,7 @@ import { assert } from "shared/assert";
 import { hexToByteSequence, mapAttributes, partOf } from "./helpers";
 import type {
   DateRange,
+  Define,
   Key,
   MediaInitializationSection,
   PlaylistType,
@@ -44,7 +45,8 @@ export type Tag =
   | ["EXT-X-MAP", MediaInitializationSection]
   | ["EXT-X-DATERANGE", DateRange]
   | ["EXT-X-CUE-OUT", CueOut]
-  | ["EXT-X-KEY", Key];
+  | ["EXT-X-KEY", Key]
+  | ["EXT-X-DEFINE", Define];
 
 export interface ExtInf {
   duration: number;
@@ -375,6 +377,39 @@ function parseLine(line: string): Tag | null {
           iv: attrs.iv,
           format: attrs.format,
           formatVersion: attrs.formatVersion,
+        },
+      ];
+    }
+
+    case "EXT-X-DEFINE": {
+      assert(param, "EXT-X-DEFINE: no param");
+
+      const attrs: Partial<Define> = {};
+
+      mapAttributes(param, (key, value) => {
+        switch (key) {
+          case "NAME":
+            attrs.name = value;
+            break;
+          case "VALUE":
+            attrs.value = value;
+            break;
+          case "QUERYPARAM":
+            attrs.queryParam = value;
+            break;
+          case "IMPORT":
+            attrs.import = value;
+            break;
+        }
+      });
+
+      return [
+        name,
+        {
+          name: attrs.name,
+          value: attrs.value,
+          queryParam: attrs.queryParam,
+          import: attrs.import,
         },
       ];
     }
