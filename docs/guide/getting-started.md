@@ -30,8 +30,7 @@ services:
       - superstreamer-redis
     env_file: .env
     environment:
-      - REDIS_HOST=superstreamer-redis
-      - REDIS_PORT=6379
+      - REDIS_URI=redis://superstreamer-redis:6379
       - DATABASE_URI=postgresql://postgres:sprs@superstreamer-postgres/sprs
 
   superstreamer-app:
@@ -49,8 +48,7 @@ services:
       - superstreamer-redis
     env_file: .env
     environment:
-      - REDIS_HOST=superstreamer-redis
-      - REDIS_PORT=6379
+      - REDIS_URI=redis://superstreamer-redis:6379
 
   superstreamer-stitcher:
     image: "superstreamerapp/stitcher:latest"
@@ -61,8 +59,7 @@ services:
       - superstreamer-redis
     env_file: .env
     environment:
-      - REDIS_PORT=6379
-      - REDIS_HOST=superstreamer-redis
+      - REDIS_URI=redis://superstreamer-redis:6379
       - PUBLIC_API_ENDPOINT=http://localhost:52001
       - PUBLIC_STITCHER_ENDPOINT=http://localhost:52002
 
@@ -118,6 +115,8 @@ $ docker compose up -d
 :::
 
 By default, we host the app on port `52000`. Open `http://127.0.0.1:52000` in your browser, and you're all set!
+
+The default username is `admin` and the default password is `admin`.
 
 ::: info
 
