@@ -11,6 +11,7 @@ const env = z
   .object({
     PUBLIC_API_ENDPOINT: z.string().optional(),
     PUBLIC_STITCHER_ENDPOINT: z.string().optional(),
+    PUBLIC_S3_ENDPOINT: z.string().optional(),
     TAG: z.string().default("latest"),
   })
   .parse(process.env);
