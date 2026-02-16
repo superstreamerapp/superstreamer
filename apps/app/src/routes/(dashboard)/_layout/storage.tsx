@@ -1,9 +1,9 @@
-import { BreadcrumbItem, Breadcrumbs } from "@heroui/react";
+import { BreadcrumbItem, Breadcrumbs, Tooltip } from "@heroui/react";
 import { toParams } from "@superstreamer/api/client";
 import type { ApiClient, StorageItem } from "@superstreamer/api/client";
 import { Link, createFileRoute } from "@tanstack/react-router";
 import { zodSearchValidator } from "@tanstack/router-zod-adapter";
-import { File, Folder } from "lucide-react";
+import { Check, Copy, Eye, File, Folder } from "lucide-react";
 import { useState } from "react";
 import z from "zod";
 import { useApi } from "../../../api";
@@ -152,17 +152,65 @@ function Item({
 
   if (item.type === "file") {
     const name = chunks[chunks.length - 1];
+    const isMasterPlaylist = name === "master.m3u8";
+
     return (
-      <button
-        type="button"
-        onClick={() => {
-          setPreviewPath(item.path);
-        }}
-      >
-        {name}
-      </button>
+      <div className="flex items-center gap-2">
+        <button
+          type="button"
+          onClick={() => {
+            setPreviewPath(item.path);
+          }}
+        >
+          {name}
+        </button>
+        {isMasterPlaylist ? (
+          <div className="flex items-center gap-1">
+            <Tooltip content="Preview">
+              <button
+                type="button"
+                className="p-1 rounded hover:bg-gray-100"
+                onClick={() => {
+                  setPreviewPath(item.path);
+                }}
+              >
+                <Eye className="w-3.5 h-3.5 opacity-50" />
+              </button>
+            </Tooltip>
+            <CopyUrlButton path={item.path} />
+          </div>
+        ) : null}
+      </div>
     );
   }
+}
+
+function CopyUrlButton({ path }: { path: string }) {
+  const [copied, setCopied] = useState(false);
+
+  const publicUrl = `${window.__ENV__.PUBLIC_S3_ENDPOINT}${path}`;
+
+  const handleCopy = async () => {
+    await navigator.clipboard.writeText(publicUrl);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  return (
+    <Tooltip content={copied ? "Copied!" : "Copy public URL"}>
+      <button
+        type="button"
+        className="p-1 rounded hover:bg-gray-100"
+        onClick={handleCopy}
+      >
+        {copied ? (
+          <Check className="w-3.5 h-3.5 text-green-500" />
+        ) : (
+          <Copy className="w-3.5 h-3.5 opacity-50" />
+        )}
+      </button>
+    </Tooltip>
+  );
 }
 
 function Icon({ item }: { item: StorageItem }) {
